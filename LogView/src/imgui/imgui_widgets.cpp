@@ -7043,14 +7043,39 @@ bool ImGui::TabItemLabelAndCloseButton(ImDrawList* draw_list, const ImRect& bb, 
         return false;
 
     // Render text label (with clipping + alpha gradient) + unsaved marker
-    const char* TAB_UNSAVED_MARKER = "*";
+	char TABS[4] = { '\0' };
+    const char TAB_UNSAVED_MARKER = '*';
+	const char TAB_UPDATED_MARKER = '+';
+	const char TAB_NOFILE_MARKER =  'x';
+
     ImRect text_pixel_clip_bb(bb.Min.x + frame_padding.x, bb.Min.y + frame_padding.y, bb.Max.x - frame_padding.x, bb.Max.y);
-    if (flags & ImGuiTabItemFlags_UnsavedDocument)
+   
+	int l_pos_add = 2;
+	int l_i = 0;
+	if (flags & ImGuiTabItemFlags_FileNotFound)
     {
-        text_pixel_clip_bb.Max.x -= CalcTextSize(TAB_UNSAVED_MARKER, NULL, false).x;
-        ImVec2 unsaved_marker_pos(ImMin(bb.Min.x + frame_padding.x + label_size.x + 2, text_pixel_clip_bb.Max.x), bb.Min.y + frame_padding.y + (float)(int)(-g.FontSize * 0.25f));
-        RenderTextClippedEx(draw_list, unsaved_marker_pos, bb.Max - frame_padding, TAB_UNSAVED_MARKER, NULL, NULL);
+		TABS[l_i] = TAB_NOFILE_MARKER;
+		l_i++;
+      
     }
+	if (flags & ImGuiTabItemFlags_FileUpdated)
+	{
+		TABS[l_i] = TAB_UPDATED_MARKER;
+		l_i++;
+	}
+	if (flags & ImGuiTabItemFlags_UnsavedDocument)
+	{
+		TABS[l_i] = TAB_UNSAVED_MARKER;
+		l_i++;
+	}
+
+	if (1)
+	{
+		text_pixel_clip_bb.Max.x -= CalcTextSize(TABS, NULL, false).x;
+		ImVec2 unsaved_marker_pos(ImMin(bb.Min.x + frame_padding.x + label_size.x + 2, text_pixel_clip_bb.Max.x), bb.Min.y + frame_padding.y + (float)(int)(-g.FontSize * 0.25f));
+		RenderTextClippedEx(draw_list, unsaved_marker_pos, bb.Max - frame_padding, TABS, NULL, NULL);
+	}
+
     ImRect text_ellipsis_clip_bb = text_pixel_clip_bb;
 
     // Close Button
