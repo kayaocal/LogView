@@ -10,6 +10,7 @@ class TagItem
 	bool _isActive;
 	char _textBuffer[MAX_TAG_LENGTH];
 
+
 public:
 	TagItem(bool isActive, const ImVec4& texCol, const ImVec4& bgCol);
 
@@ -23,6 +24,8 @@ public:
 	void SetIsActive(bool isActive);
 	void Toggle();
 	bool IsActive();
+	bool Filter(const char* haystack, const char* haystack_end);
+	
 
 	~TagItem();
 };

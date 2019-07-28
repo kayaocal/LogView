@@ -249,9 +249,28 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 		const char* line_start = buf_start + _openedFiles[tabId]->LineOffsets[i];
 		const char* line_end = (i + 1 < _openedFiles[tabId]->LineOffsets.Size) ? (buf_start + _openedFiles[tabId]->LineOffsets[i + 1] - 1) : buf_end;
 		ImGui::PushID(i);
-		ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[0]->GetBgColor());
-		ImGui::TextUnformattedWBg(line_start, line_end);
-		ImGui::PopStyleColor(1);
+		static ImVec4 col;
+		bool shouldPaint = false;
+		int tagId = 0;
+		for (int j = 0; j < _activeTags.size(); j++)
+		{
+			if (_activeTags[j]->Filter(line_start, line_end))
+			{
+				shouldPaint = true;
+				tagId = j;
+			}
+		}
+		if (shouldPaint)
+		{
+			ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[tagId]->GetBgColor());
+			ImGui::TextUnformattedWBg(line_start, line_end);
+			ImGui::PopStyleColor(1);
+		}
+		else
+		{
+			ImGui::TextUnformatted(line_start, line_end);
+		}
+
 	}
 
 	if (*_openedFiles[tabId]->IsFollowTailsActive())
@@ -397,7 +416,18 @@ void LogWindow::DrawTagWorks(float width)
 	ImGui::SameLine();
 
 	if (ImGui::Button("Add Tag"))
-		ImGui::OpenPopup("AddNewTag");
+	{
+		if (_activeTags.size() < MAX_TAG_COUNT)
+		{
+			ImGui::OpenPopup("AddNewTag");
+		}
+		else
+		{
+			std::cout << "Error :: Tag over flow! " << std::endl;
+			//ImGui::Message
+		}
+		
+	}
 
 	if (ImGui::BeginPopupContextItem("AddNewTag"))
 	{

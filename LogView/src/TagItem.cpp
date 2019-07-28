@@ -1,5 +1,7 @@
 #include "TagItem.h"
 #include <iostream>
+#include <imgui_internal.h>
+
 TagItem::TagItem(bool isActive, const ImVec4 & texCol, const ImVec4 & bgCol)
 {
 	_textColor = texCol;
@@ -56,6 +58,15 @@ void TagItem::Toggle()
 bool TagItem::IsActive()
 {
 	return _isActive;
+}
+
+bool TagItem::Filter(const char * haystack, const char * haystack_end)
+{
+	
+	if (ImStristr(haystack, haystack_end, _textBuffer, _textBuffer + strlen(_textBuffer)))
+		return true;
+
+	return false;
 }
 
 TagItem::~TagItem()
