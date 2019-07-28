@@ -186,7 +186,7 @@ void LogWindow::Render(float width, float height)
 						ImGui::TextUnformatted(line_start, line_end);
 					}
 					
-					if (_openedFiles[n]->IsFollowTailsActive())
+					if (*_openedFiles[n]->IsFollowTailsActive())
 						ImGui::SetScrollHereY(1.0f);
 
 					ImGui::PopStyleVar();

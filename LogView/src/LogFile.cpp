@@ -42,12 +42,13 @@ void LogView::LogFile::ReadFile()
 	boost::filesystem::path p(_wFileName);
 	boost::filesystem::fstream stream(p, boost::filesystem::ifstream::in);
 	_buf.clear();
+	LineOffsets.clear();
+	_lineCount = 0;
 	int l_offsets = 0;
 	for (std::string line; std::getline(stream, line); )
 	{
 		_buf.append(line.c_str());
 		LineOffsets.push_back(l_offsets);
-		std::cout << "line ofset : " << l_offsets <<std::endl;
 		l_offsets += line.length();
 		_lineCount++;
 	}
