@@ -81,6 +81,14 @@ int main(int, char**)
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	LogWindow* logWnd = new LogWindow();
+
+	ImFont* font1 = io.Fonts->AddFontFromFileTTF("Roboto-Medium.ttf", 15);
+	if (font1 == nullptr)
+	{
+		std::cout<<"Font Creation is not succesfull! :(" <<std::endl;
+	}
+	logWnd->RobotoFont = font1;
+
 	
     // Main loop
     MSG msg;

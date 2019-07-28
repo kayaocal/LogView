@@ -28,6 +28,7 @@
     <ClCompile Include="src\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Src\LogFile.cpp" />
     <ClCompile Include="Src\LogWindow.cpp" />
+    <ClCompile Include="src\TagItem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\General.h" />
@@ -41,6 +42,7 @@
     <ClInclude Include="include\imgui\imstb_truetype.h" />
     <ClInclude Include="include\LogFile.h" />
     <ClInclude Include="include\LogWindow.h" />
+    <ClInclude Include="include\TagItem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\imgui_impl_metal.mm" />

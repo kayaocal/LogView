@@ -549,7 +549,7 @@ static void ShowDemoWindowWidgets()
             ImGui::ColorEdit3("color 1", col1);
             ImGui::SameLine(); HelpMarker("Click on the colored square to open a color picker.\nClick and hold to use drag and drop.\nRight-click on the colored square to show options.\nCTRL+click on individual component to input value.\n");
 
-            ImGui::ColorEdit4("color 2", col2);
+            ImGui::ColorPicker3("color 2", col2, ImGuiColorEditFlags_NoTooltip);
         }
 
         {
