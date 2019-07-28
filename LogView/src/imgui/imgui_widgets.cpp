@@ -155,6 +155,13 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags)
 
         // Lines to skip (can't skip when logging text)
         ImVec2 pos = text_pos;
+
+
+	
+
+
+
+
         if (!g.LogEnabled)
         {
             int lines_skippable = (int)((window->ClipRect.Min.y - text_pos.y) / line_height);
@@ -210,10 +217,15 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags)
             pos.y += lines_skipped * line_height;
         }
         text_size.y = (pos - text_pos).y;
+		ImRect bb(text_pos, text_pos + text_size);
+		ItemSize(text_size);
+		ItemAdd(bb, 0);
 
-        ImRect bb(text_pos, text_pos + text_size);
-        ItemSize(text_size);
-        ItemAdd(bb, 0);
+		if ((flags & ImGuiTextFlags_BG) > 0)
+		{
+			ImU32 xcol = GetColorU32(ImGuiCol_TextBG);
+			RenderFrame(bb.Min, bb.Max, xcol, true, 0);
+		}
     }
     else
     {
@@ -226,8 +238,20 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags)
             return;
 
         // Render (we don't hide text after ## in this end-user function)
+		if ((flags & ImGuiTextFlags_BG) > 0)
+		{
+			ImU32 xcol = GetColorU32(ImGuiCol_TextBG);
+			RenderFrame(bb.Min, bb.Max, xcol, true, 0);
+		}
+
         RenderTextWrapped(bb.Min, text_begin, text_end, wrap_width);
     }
+
+}
+
+void ImGui::TextUnformattedWBg(const char* text, const char* text_end)
+{
+	TextEx(text, text_end, ImGuiTextFlags_BG);
 }
 
 void ImGui::TextUnformatted(const char* text, const char* text_end)

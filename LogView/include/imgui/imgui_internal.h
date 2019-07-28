@@ -412,7 +412,8 @@ enum ImGuiItemStatusFlags_
 enum ImGuiTextFlags_
 {
     ImGuiTextFlags_None = 0,
-    ImGuiTextFlags_NoWidthForLargeClippedText = 1 << 0
+    ImGuiTextFlags_NoWidthForLargeClippedText = 1 << 0,
+    ImGuiTextFlags_BG = 1 << 1
 };
 
 // FIXME: this is in development, not exposed/functional as a generic feature yet.

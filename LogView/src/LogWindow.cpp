@@ -248,8 +248,10 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 	{
 		const char* line_start = buf_start + _openedFiles[tabId]->LineOffsets[i];
 		const char* line_end = (i + 1 < _openedFiles[tabId]->LineOffsets.Size) ? (buf_start + _openedFiles[tabId]->LineOffsets[i + 1] - 1) : buf_end;
-
-		ImGui::TextUnformatted(line_start, line_end);
+		ImGui::PushID(i);
+		ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[0]->GetBgColor());
+		ImGui::TextUnformattedWBg(line_start, line_end);
+		ImGui::PopStyleColor(1);
 	}
 
 	if (*_openedFiles[tabId]->IsFollowTailsActive())
@@ -257,10 +259,16 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 
 	ImGui::PopStyleVar();
 	ImGui::EndChild();
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
 }
+
 void LogWindow::DrawTaggedLogs(float width, int tabId)
 {
+
 }
+
 void LogWindow::DrawTagWorks(float width)
 {
 	size_t tagCount = _activeTags.size();
