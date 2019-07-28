@@ -169,29 +169,8 @@ void LogWindow::Render(float width, float height)
 					AddToolTip("Shortcut: Shift + F3");
 
 					ImGui::Separator();
-					ImGui::BeginChild("scrolling", ImVec2(width - 25, 400), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | 
-						ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
-					
-					int counter = _openedFiles[n]->GetLineCounter();
-					ImGuiTextBuffer* buf = _openedFiles[n]->GetTextBuffer();
-					const char* buf_start = buf->begin();
-					const char* buf_end = buf->end();
-
-					ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
-
-					for (int i = 0; i < counter; i++)
-					{
-						const char* line_start = buf_start + _openedFiles[n]->LineOffsets[i];
-						const char* line_end = (i + 1 < _openedFiles[n]->LineOffsets.Size) ? (buf_start + _openedFiles[n]->LineOffsets[i + 1] - 1) : buf_end;
-						
-						ImGui::TextUnformatted(line_start, line_end);
-					}
-					
-					if (*_openedFiles[n]->IsFollowTailsActive())
-						ImGui::SetScrollHereY(1.0f);
-
-					ImGui::PopStyleVar();
-					ImGui::EndChild();
+					DrawPureLogs(width, n);
+					DrawTaggedLogs(width, n);
 					ImGui::EndTabItem();
 				}
 			}
@@ -199,179 +178,10 @@ void LogWindow::Render(float width, float height)
 			ImGui::EndTabBar();
 		}
 
-		ImGui::Separator();
-
-		
 		ImGui::SameLine();
 		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
-		ImGui::BeginChild("ssdcrolling", ImVec2(width / 2 - 50, 50), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar);
 		
-		ImGui::Text("Active Tags: ");
-		ImGui::SameLine();
-		size_t tagCount = _activeTags.size();
-
-
-		int l_counter = 0;
-		int active_counter = 0;
-		int additionalLine = 1;
-		for (int i = 0; i < tagCount; i++)
-		{
-			if (_activeTags[i]->IsActive())
-			{
-				active_counter++;
-			}
-		}
-		int passiveCounter = tagCount - active_counter;
-
-		for (int i = 0; i < tagCount; i++)
-		{
-			if (i > 0)
-			{
-				if (l_counter >= active_counter / 2 && additionalLine > 0)
-				{
-					additionalLine--;
-				}
-				else
-				{
-					ImGui::SameLine();
-				}
-
-			}
-
-			ImGui::PushID(i);
-			if (i % 2 == 0)
-			{
-				ImGui::PushFont(RobotoFont);
-			}
-		
-			if (_activeTags[i]->IsActive() == false)
-			{
-				continue;
-			}
-			l_counter++;
-		
-			ImGui::PushStyleColor(ImGuiCol_Button, _activeTags[i]->GetBgColor());
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, _activeTags[i]->GetBgColor());
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, _activeTags[i]->GetBgColor());
-			ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[i]->GetTextColor());
-			
-			ImGui::Button(_activeTags[i]->GetTag());
-			if (ImGui::IsItemHovered())
-			{
-				AddToolTip("Right Click to Edit");
-				if(ImGui::IsMouseClicked(0))
-				{
-					_activeTags[i]->Toggle();
-				}
-				if (ImGui::IsMouseClicked(1))
-				{
-					std::cout << "Mouse sag click ";
-					_tagToEdit = i;
-					
-					//EditTag(_activeTags[i], false);
-				}
-
-				std::cout<<std::endl;
-			}
-			
-
-			if (i % 2 == 0)
-			{
-				ImGui::PopFont();
-			}
-			ImGui::PopStyleColor(4);
-			ImGui::PopID();
-		}
-
-		ImGui::EndChild();
-		ImGui::SameLine();
-		
-		ImGui::BeginChild("ssdnactivecrolling", ImVec2(width / 2 - 50, 50), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar);
-	
-		ImGui::Text("Disabled Tags: ");
-		ImGui::SameLine();
-		l_counter = 0;
-		additionalLine = 1;
-		for (int i = 0; i < tagCount; i++)
-		{
-			if (i > 0)
-			{
-				if (l_counter >= passiveCounter / 2 && additionalLine > 0)
-				{
-					additionalLine--;
-				}
-				else
-				{
-					ImGui::SameLine();
-				}
-			}
-
-			ImGui::PushID(i);
-			if (i % 2 == 0)
-			{
-				ImGui::PushFont(RobotoFont);
-			}
-
-			if (_activeTags[i]->IsActive() == true)
-			{
-				continue;
-			}
-			l_counter++;
-			ImGui::PushStyleColor(ImGuiCol_Button, _activeTags[i]->GetBgColor());
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, _activeTags[i]->GetBgColor());
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, _activeTags[i]->GetBgColor());
-			ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[i]->GetTextColor());
-			ImGui::Button(_activeTags[i]->GetTag());
-			if (ImGui::IsItemHovered())
-			{
-				AddToolTip("Right Click to Edit");
-				if (ImGui::IsMouseClicked(0))
-				{
-					_activeTags[i]->Toggle();
-				}
-				if (ImGui::IsMouseClicked(1))
-				{
-					std::cout << "Mouse sag click ";
-					_tagToEdit = i;
-
-					//EditTag(_activeTags[i], false);
-				}
-
-				std::cout << std::endl;
-			}
-
-
-			if (i % 2 == 0)
-			{
-				ImGui::PopFont();
-			}
-			ImGui::PopStyleColor(4);
-			ImGui::PopID();
-		}
-		ImGui::EndChild();
-
-		ImGui::SameLine();
-		if (ImGui::Button("Add Tag"))
-			ImGui::OpenPopup("AddNewTag");
-
-		if (ImGui::BeginPopupContextItem("AddNewTag"))
-		{
-			TagItem* it = new TagItem(true, ImVec4(0.0f, 0.0f, 0.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-			EditTag(it, true);
-		}
-
-		if (_tagToEdit >= 0)
-		{
-			ImGui::OpenPopup("UpdateTag");
-			if (ImGui::BeginPopupContextItem("UpdateTag"))
-			{
-				EditTag(_activeTags[_tagToEdit], false);
-			}
-		}
+		DrawTagWorks(width);
 		
 	}
 
@@ -419,6 +229,181 @@ void LogWindow::AddToolTip(const char * chr)
 		ImGui::BeginTooltip();
 		ImGui::Text(chr);
 		ImGui::EndTooltip();
+	}
+}
+
+void LogWindow::DrawPureLogs(float width, int tabId)
+{
+	ImGui::BeginChild("scrolling", ImVec2(width - 25, 400), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
+
+	int counter = _openedFiles[tabId]->GetLineCounter();
+	ImGuiTextBuffer* buf = _openedFiles[tabId]->GetTextBuffer();
+	const char* buf_start = buf->begin();
+	const char* buf_end = buf->end();
+
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
+
+	for (int i = 0; i < counter; i++)
+	{
+		const char* line_start = buf_start + _openedFiles[tabId]->LineOffsets[i];
+		const char* line_end = (i + 1 < _openedFiles[tabId]->LineOffsets.Size) ? (buf_start + _openedFiles[tabId]->LineOffsets[i + 1] - 1) : buf_end;
+
+		ImGui::TextUnformatted(line_start, line_end);
+	}
+
+	if (*_openedFiles[tabId]->IsFollowTailsActive())
+		ImGui::SetScrollHereY(1.0f);
+
+	ImGui::PopStyleVar();
+	ImGui::EndChild();
+}
+void LogWindow::DrawTaggedLogs(float width, int tabId)
+{
+}
+void LogWindow::DrawTagWorks(float width)
+{
+	size_t tagCount = _activeTags.size();
+
+	ImGui::BeginChild("activeTags", ImVec2(width / 2 - 50, 50), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar);
+
+	ImGui::Text("Active Tags: ");
+	ImGui::SameLine();
+
+	int l_counter = 0;
+	int active_counter = 0;
+	int additionalLine = 1;
+	for (size_t i = 0; i < tagCount; i++)
+	{
+		if (_activeTags[i]->IsActive())
+		{
+			active_counter++;
+		}
+	}
+	int passiveCounter = tagCount - active_counter;
+
+	for (int i = 0; i < tagCount; i++)
+	{
+		if (_activeTags[i]->IsActive() == false)
+		{
+			continue;
+		}
+		if (i > 0)
+		{
+			if (l_counter >= active_counter / 2 && additionalLine > 0)
+			{
+				additionalLine--;
+			}
+			else
+			{
+				ImGui::SameLine();
+			}
+
+		}
+		l_counter++;
+
+		ImGui::PushID(l_counter);
+		ImGui::PushStyleColor(ImGuiCol_Button, _activeTags[i]->GetBgColor());
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, _activeTags[i]->GetBgColor());
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, _activeTags[i]->GetBgColor());
+		ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[i]->GetTextColor());
+
+		ImGui::Button(_activeTags[i]->GetTag());
+		if (ImGui::IsItemHovered())
+		{
+			AddToolTip("Right Click to Edit");
+			if (ImGui::IsMouseClicked(0))
+			{
+				_activeTags[i]->Toggle();
+			}
+			if (ImGui::IsMouseClicked(1))
+			{
+				_tagToEdit = i;
+
+				//EditTag(_activeTags[i], false);
+			}
+
+			std::cout << std::endl;
+		}
+
+		ImGui::PopStyleColor(4);
+		ImGui::PopID();
+	}
+
+	ImGui::EndChild();
+	ImGui::SameLine();
+
+	ImGui::BeginChild("deactiveTags", ImVec2(width / 2 - 50, 50), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar);
+
+	ImGui::Text("Disabled Tags: ");
+	ImGui::SameLine();
+	l_counter = 0;
+	additionalLine = 1;
+	for (int i = 0; i < tagCount; i++)
+	{
+		if (_activeTags[i]->IsActive() == true)
+		{
+			continue;
+		}
+		if (i > 0)
+		{
+			if (l_counter >= passiveCounter / 2 && additionalLine > 0)
+			{
+				additionalLine--;
+			}
+			else
+			{
+				ImGui::SameLine();
+			}
+		}
+		l_counter++;
+
+		ImGui::PushID(l_counter);
+		ImGui::PushStyleColor(ImGuiCol_Button, _activeTags[i]->GetBgColor());
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, _activeTags[i]->GetBgColor());
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, _activeTags[i]->GetBgColor());
+		ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[i]->GetTextColor());
+		ImGui::Button(_activeTags[i]->GetTag());
+		if (ImGui::IsItemHovered())
+		{
+			AddToolTip("Right Click to Edit");
+			if (ImGui::IsMouseClicked(0))
+			{
+				_activeTags[i]->Toggle();
+			}
+			if (ImGui::IsMouseClicked(1))
+			{
+				_tagToEdit = i;
+			}
+
+			std::cout << std::endl;
+		}
+
+		ImGui::PopStyleColor(4);
+		ImGui::PopID();
+	}
+	ImGui::EndChild();
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("Add Tag"))
+		ImGui::OpenPopup("AddNewTag");
+
+	if (ImGui::BeginPopupContextItem("AddNewTag"))
+	{
+		TagItem* it = new TagItem(true, ImVec4(0.0f, 0.0f, 0.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+		EditTag(it, true);
+	}
+
+	if (_tagToEdit >= 0)
+	{
+		ImGui::OpenPopup("UpdateTag");
+		if (ImGui::BeginPopupContextItem("UpdateTag"))
+		{
+			EditTag(_activeTags[_tagToEdit], false);
+		}
 	}
 }
 

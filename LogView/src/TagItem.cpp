@@ -9,14 +9,11 @@ TagItem::TagItem(bool isActive, const ImVec4 & texCol, const ImVec4 & bgCol)
 
 ImVec4 & TagItem::GetBgColor()
 {
-	std::cout << "GetBGColor : " << _bgColor.x << ", " << _bgColor.y << ", " << _bgColor.z << std::endl;
-
 	return _bgColor;
 }
 
 ImVec4 & TagItem::GetTextColor()
 {
-	std::cout << "GetTextColor : " << _textColor.x << ", " << _textColor.y << ", " << _textColor.z<<std::endl;
 	return _textColor;
 }
 

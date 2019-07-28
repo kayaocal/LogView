@@ -24,6 +24,10 @@ private :
 	bool CanOpenSelectedFile(wchar_t* file_name);
 	void DrawTabs();
 	void AddToolTip(const char* chr);
+	void DrawTagWorks(float width);
+	void DrawPureLogs(float width, int tabId);
+	void DrawTaggedLogs(float width, int tabId);
+
 	void EditTag(TagItem * item, bool isNew);
 public:
 	LogWindow();
