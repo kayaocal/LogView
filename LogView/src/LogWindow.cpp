@@ -110,7 +110,8 @@ void LogWindow::Render(float width, float height)
 
 				if (ImGui::BeginTabItem(_openedFiles[n]->GetFileTitleC(), _openedFiles[n]->IsActive(), flags))
 				{
-					switch (_openedFiles[n]->CheckFileStatus(true))
+					_activeTabIndex = n;
+					switch (_openedFiles[n]->CheckFileStatus(true, &_activeTags))
 					{
 					case 0:
 						std::cout << "FILE IS NOT FOUND" << std::endl;
@@ -170,6 +171,9 @@ void LogWindow::Render(float width, float height)
 
 					ImGui::Separator();
 					DrawPureLogs(width, n);
+					ImGui::Separator();
+					DrawTagWorks(width);
+					ImGui::Separator();
 					DrawTaggedLogs(width, n);
 					ImGui::EndTabItem();
 				}
@@ -181,7 +185,7 @@ void LogWindow::Render(float width, float height)
 		ImGui::SameLine();
 		ImGui::Spacing();
 		
-		DrawTagWorks(width);
+		
 		
 	}
 
@@ -252,19 +256,18 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 		static ImVec4 col;
 		bool shouldPaint = false;
 		int tagId = 0;
-		for (int j = 0; j < _activeTags.size(); j++)
+		
+		if (_openedFiles[tabId]->LineTags[i] > 0)
 		{
-			if (_activeTags[j]->Filter(line_start, line_end))
+			int tagIndex = GetTagIndex(_openedFiles[tabId]->LineTags[i]);
+			if (tagIndex >= 0)
 			{
-				shouldPaint = true;
-				tagId = j;
+				ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[tagIndex]->GetBgColor());
+				ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[tagIndex]->GetTextColor());
+				ImGui::TextUnformattedWBg(line_start, line_end);
+				ImGui::PopStyleColor(2);
 			}
-		}
-		if (shouldPaint)
-		{
-			ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[tagId]->GetBgColor());
-			ImGui::TextUnformattedWBg(line_start, line_end);
-			ImGui::PopStyleColor(1);
+
 		}
 		else
 		{
@@ -285,7 +288,88 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 
 void LogWindow::DrawTaggedLogs(float width, int tabId)
 {
+	ImGui::BeginChild("scrolling32", ImVec2(width - 25, 400), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
 
+	int counter = _openedFiles[tabId]->GetLineCounter();
+	ImGuiTextBuffer* buf = _openedFiles[tabId]->GetTextBuffer();
+	const char* buf_start = buf->begin();
+	const char* buf_end = buf->end();
+
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
+
+	for (int i = 0; i < counter; i++)
+	{
+		if (_openedFiles[tabId]->LineTags[i] > 0)
+		{
+			const char* line_start = buf_start + _openedFiles[tabId]->LineOffsets[i];
+			const char* line_end = (i + 1 < _openedFiles[tabId]->LineOffsets.Size) ? (buf_start + _openedFiles[tabId]->LineOffsets[i + 1] - 1) : buf_end;
+			ImGui::PushID(i);
+			static ImVec4 col;
+			bool shouldPaint = false;
+			int tagId = 0;
+		
+			int tagIndex = GetTagIndex(_openedFiles[tabId]->LineTags[i]);
+			if (tagIndex >= 0)
+			{
+				ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[tagIndex]->GetBgColor());
+				ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[tagIndex]->GetTextColor());
+				ImGui::TextUnformattedWBg(line_start, line_end);
+				ImGui::PopStyleColor(2);
+			}
+		}
+	}
+
+	if (*_openedFiles[tabId]->IsFollowTailsActive())
+		ImGui::SetScrollHereY(1.0f);
+
+	ImGui::PopStyleVar();
+	ImGui::EndChild();
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
+}
+
+int LogWindow::GetTagIndex(int tagID)
+{
+	for (size_t i = 0; i < _activeTags.size(); i++)
+	{
+		if (_activeTags[i]->GetTagID() == tagID)
+		{
+			return i;
+		}
+	}
+	return -1;
+
+}
+
+int LogWindow::CalculateAvaibleTagID()
+{
+	int tags[MAX_TAG_COUNT] = { 0 };
+	
+	for (int i = 0; i < _activeTags.size(); i++)
+	{
+		std::cout << "tag : " << _activeTags[i]->GetTagID()<<std::endl;
+		int number = _activeTags[i]->GetTagID();
+		int count=0;
+		while (number != 1)
+		{
+			number = number >> 1;
+			count++;
+		}
+		tags[count] = 1;
+	}
+
+	for (int i = 1; i < MAX_TAG_COUNT; i++)
+	{
+		if (tags[i] == 0)
+		{
+			std::cout << "returned id : " << i << std::endl;
+			return i;
+		}
+	}
+
+	return -1;
 }
 
 void LogWindow::DrawTagWorks(float width)
@@ -347,8 +431,6 @@ void LogWindow::DrawTagWorks(float width)
 			if (ImGui::IsMouseClicked(1))
 			{
 				_tagToEdit = i;
-
-				//EditTag(_activeTags[i], false);
 			}
 
 			std::cout << std::endl;
@@ -431,8 +513,22 @@ void LogWindow::DrawTagWorks(float width)
 
 	if (ImGui::BeginPopupContextItem("AddNewTag"))
 	{
-		TagItem* it = new TagItem(true, ImVec4(0.0f, 0.0f, 0.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-		EditTag(it, true);
+		if (tagCount < 30)
+		{		
+			if (_itemToEdit == nullptr)
+			{
+				int tTagID = CalculateAvaibleTagID();
+				if (tTagID >= 0)
+				{
+					std::cout << "Tag ID = " << tTagID << std::endl;
+					_itemToEdit = new TagItem(true, ImVec4(0.0f, 0.0f, 0.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), (1 << (tTagID)));
+				}
+
+			}	
+
+			EditTag(true);
+			return;
+		}
 	}
 
 	if (_tagToEdit >= 0)
@@ -440,13 +536,22 @@ void LogWindow::DrawTagWorks(float width)
 		ImGui::OpenPopup("UpdateTag");
 		if (ImGui::BeginPopupContextItem("UpdateTag"))
 		{
-			EditTag(_activeTags[_tagToEdit], false);
+			_itemToEdit = _activeTags[_tagToEdit];
+			EditTag(false);
 		}
 	}
 }
 
-void LogWindow::EditTag(TagItem * item, bool isNew)
+void LogWindow::EditTag(bool isNew)
 {
+	if (_itemToEdit == nullptr)
+	{
+		std::cout << "Error : 386"<<std::endl;
+		
+		return;
+	}
+
+	TagItem* item = _itemToEdit;
 	ImVec4 col = item->GetBgColor();
 	static float col_bg[4] = { col.x, col.y, col.z, col.z };
 	ImGui::ColorEdit4("Background Color", col_bg, ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_Uint8 | ImGuiColorEditFlags_NoInputs);
@@ -485,7 +590,12 @@ void LogWindow::EditTag(TagItem * item, bool isNew)
 			item->SetTag(bufTagName);
 			_tagToEdit = -1;
 			ImGui::CloseCurrentPopup();
+			if (_openedFiles.size() > 0)
+			{
+				_openedFiles[_activeTabIndex]->ReadFile(&_activeTags);
+			}
 		}
+		_itemToEdit = nullptr;
 	}
 
 	ImGui::SameLine();
@@ -515,12 +625,12 @@ void LogWindow::EditTag(TagItem * item, bool isNew)
 		{
 			_activeTags.erase(_activeTags.begin() + index);
 		}
-
+		_itemToEdit = nullptr;
 		delete(item);
 		_tagToEdit = -1;
 		ImGui::CloseCurrentPopup();
 	}
-
+	
 	ImGui::EndPopup();
 }
 

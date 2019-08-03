@@ -2,8 +2,9 @@
 #include <iostream>
 #include <imgui_internal.h>
 
-TagItem::TagItem(bool isActive, const ImVec4 & texCol, const ImVec4 & bgCol)
+TagItem::TagItem(bool isActive, const ImVec4 & texCol, const ImVec4 & bgCol, int tagID)
 {
+	_tagID = tagID;
 	_textColor = texCol;
 	_bgColor = bgCol;
 	_isActive = isActive;
@@ -22,6 +23,16 @@ ImVec4 & TagItem::GetTextColor()
 void TagItem::SetTag(char * str)
 {
 	strcpy(_textBuffer, str);
+}
+
+void TagItem::SetTagID(int tagID)
+{
+	_tagID = tagID;
+}
+
+int TagItem::GetTagID()
+{
+	return _tagID;
 }
 
 char * TagItem::GetTag()

@@ -9,6 +9,8 @@
 #include <boost/filesystem.hpp>
 #include <cstring>
 #include <imgui.h>
+#include "TagItem.h"
+
 using namespace boost::filesystem;
 
 namespace LogView
@@ -26,8 +28,7 @@ namespace LogView
 		bool _isActive;
 		bool _followTail;
 		std::ifstream* _pStream;
-		std::time_t _lastWriteTime;
-
+		std::uintmax_t _lastFileSize;
 		ImGuiTextBuffer     _buf;
 		ImGuiTextFilter     _filter;
 		int _lineCount = 0;
@@ -39,6 +40,7 @@ namespace LogView
 	
 	public:
 		ImVector<int>  LineOffsets;
+		ImVector<int>  LineTags;
 
 		bool IsUpdated();
 		bool IsDeleted();
@@ -50,8 +52,8 @@ namespace LogView
 		void SetFileTitleC(char* chr);
 
 		void SerializeLogFile();
-		void ReadFile();
-		int CheckFileStatus(bool shouldRead);
+		void ReadFile(std::vector<TagItem*>* tags = nullptr);
+		int CheckFileStatus(bool shouldRead, std::vector<TagItem*>* tags = nullptr);
 		int GetLineCounter();
 		ImGuiTextBuffer* GetTextBuffer();
 		LogFile(wchar_t* file_name, wchar_t* file_title);
