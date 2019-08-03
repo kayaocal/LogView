@@ -260,12 +260,16 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 		if (_openedFiles[tabId]->LineTags[i] > 0)
 		{
 			int tagIndex = GetTagIndex(_openedFiles[tabId]->LineTags[i]);
-			if (tagIndex >= 0)
+			if (tagIndex >= 0 && _activeTags[tagIndex]->IsActive())
 			{
 				ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[tagIndex]->GetBgColor());
 				ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[tagIndex]->GetTextColor());
 				ImGui::TextUnformattedWBg(line_start, line_end);
 				ImGui::PopStyleColor(2);
+			}
+			else
+			{
+				ImGui::TextUnformatted(line_start, line_end);
 			}
 
 		}
@@ -310,7 +314,7 @@ void LogWindow::DrawTaggedLogs(float width, int tabId)
 			int tagId = 0;
 		
 			int tagIndex = GetTagIndex(_openedFiles[tabId]->LineTags[i]);
-			if (tagIndex >= 0)
+			if (tagIndex >= 0 && _activeTags[tagIndex]->IsActive())
 			{
 				ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[tagIndex]->GetBgColor());
 				ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[tagIndex]->GetTextColor());
