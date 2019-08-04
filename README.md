@@ -1,5 +1,9 @@
 # LogView
-For tracking Simultaneously updated log files easly
+This application is for tracking simultaneously updated log files easly, such as game engine logs. Automatically updates itself, you can  
 
 
-Used imgui. This project is not done yet
+![alt text](https://github.com/kayaocal/LogView/blob/master/ss.png?raw=true)
+
+Using Dear Imgui and Boost libraries. 
+
+# WARNING This project is not done yet. 
