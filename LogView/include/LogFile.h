@@ -25,6 +25,7 @@ namespace LogView
 		char* _fileBuffer;
 
 		char _fileTitle[MAX_FILE_TITLE];
+		char _fileName[MAX_FILE_TITLE];
 		bool _isActive;
 		bool _followTail;
 		std::ifstream* _pStream;
@@ -36,25 +37,28 @@ namespace LogView
 		bool _isUpdated;
 		bool _isDeleted;
 
-
 	
 	public:
 		ImVector<int>  LineOffsets;
 		ImVector<int>  LineTags;
+		ImVector<bool>  LineSelections;
 
 		bool IsUpdated();
 		bool IsDeleted();
 		wchar_t* GetFileNameW();
 		wchar_t* GetFileTitleW();
 		char* GetFileTitleC();
+		char* GetFileNameC();
 		bool* IsActive();
 		bool* IsFollowTailsActive();
+		void SetFollowTail(bool isActive);
 		void SetFileTitleC(char* chr);
 
 		void SerializeLogFile();
 		void ReadFile(std::vector<TagItem*>* tags = nullptr);
 		int CheckFileStatus(bool shouldRead, std::vector<TagItem*>* tags = nullptr);
-		int GetLineCounter();
+		int GetLineCount();
+		
 		ImGuiTextBuffer* GetTextBuffer();
 		LogFile(wchar_t* file_name, wchar_t* file_title);
 		~LogFile();

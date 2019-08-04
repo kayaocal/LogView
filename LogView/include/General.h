@@ -4,4 +4,6 @@
 #define MAX_TAG_LENGTH 50
 #define MAX_TAG_COUNT  32
 #define MAX_OPEN_FILE_COUNT 20
+#define FONT_SIZE 15
+#define MAX_CLIPBOARD_COPY 1000
 

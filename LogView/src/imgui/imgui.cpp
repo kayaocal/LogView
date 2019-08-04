@@ -6924,6 +6924,14 @@ void ImGui::SetScrollFromPosY(float local_y, float center_y_ratio)
     window->ScrollTargetCenterRatio.y = center_y_ratio;
 }
 
+void ImGui::SetScrollFromPosY(ImGuiWindow* window, float local_y, float center_y_ratio)
+{
+	// We store a target position so centering can occur on the next frame when we are guaranteed to have a known window size
+	IM_ASSERT(center_y_ratio >= 0.0f && center_y_ratio <= 1.0f);
+	window->ScrollTarget.y = (float)(int)(local_y + window->Scroll.y);
+	window->ScrollTargetCenterRatio.y = center_y_ratio;
+}
+
 // center_x_ratio: 0.0f left of last item, 0.5f horizontal center of last item, 1.0f right of last item.
 void ImGui::SetScrollHereX(float center_x_ratio)
 {

@@ -16,6 +16,10 @@ char * LogView::LogFile::GetFileTitleC()
 	return _fileTitle;
 }
 
+char * LogView::LogFile::GetFileNameC()
+{
+	return _fileName;
+}
 bool * LogView::LogFile::IsActive()
 {
 	return &_isActive;
@@ -24,6 +28,11 @@ bool * LogView::LogFile::IsActive()
 bool * LogView::LogFile::IsFollowTailsActive()
 {
 	return &_followTail;
+}
+
+void LogView::LogFile::SetFollowTail(bool isActive)
+{
+	_followTail = isActive;
 }
 
 void LogView::LogFile::SetFileTitleC(char* chr)
@@ -58,24 +67,30 @@ void LogView::LogFile::ReadFile(std::vector<TagItem*>* tags)
 	{
 		int tag_index = 0;
 		int tag_id = 0;
+		//line = std::to_string(_lineCount) + " - " + line;
 		_buf.append(line.c_str());
 
 		while (tag_index < tag_count)
 		{
-			if ((*tags)[tag_index]->Filter(line.c_str(), line.c_str() + line.length()))
+			if ((*tags)[tag_index]->Filter(line.c_str(), line.c_str() + line.length()+1))
 			{
 				tag_id = (*tags)[tag_index]->GetTagID();
 				break;
 			}
 			tag_index++;
 		}
-			
 		LineTags.push_back(tag_id);
 		LineOffsets.push_back(l_offsets);
-		l_offsets += line.length();
+		
+		l_offsets = _buf.size();
+			
 		_lineCount++;
 	}
 
+	while (LineSelections.size() < _lineCount)
+	{
+		LineSelections.push_back(false);
+	}
 	stream.close();
 
 }
@@ -110,7 +125,7 @@ int LogView::LogFile::CheckFileStatus(bool shouldRead, std::vector<TagItem*>* ta
 	return 0;
 }
 
-int LogView::LogFile::GetLineCounter()
+int LogView::LogFile::GetLineCount()
 {
 	return _lineCount;
 }
@@ -135,6 +150,7 @@ LogView::LogFile::LogFile(wchar_t * file_name, wchar_t * file_title)
 	std::memcpy(_wFileName, file_name, sizeof(wchar_t) * MAX_FILE_NAME);
 	std::memcpy(_wFileTitle, file_title, sizeof(wchar_t) * MAX_FILE_TITLE);
 	sprintf_s(_fileTitle, "%ws", _wFileTitle);
+	sprintf_s(_fileName, "%ws", _wFileName);
 	_isActive = true;
 	_lastFileSize = 0;
 	std::cout << "LogFile Converted fileTitle = "<< _fileTitle <<std::endl;

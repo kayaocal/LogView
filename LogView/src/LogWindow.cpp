@@ -107,8 +107,8 @@ void LogWindow::Render(float width, float height)
 				{
 					flags |= ImGuiTabItemFlags_FileNotFound;
 				}
-
-				if (ImGui::BeginTabItem(_openedFiles[n]->GetFileTitleC(), _openedFiles[n]->IsActive(), flags))
+			
+				if (ImGui::BeginTabItem(_openedFiles[n]->GetFileNameC()))
 				{
 					_activeTabIndex = n;
 					switch (_openedFiles[n]->CheckFileStatus(true, &_activeTags))
@@ -156,19 +156,59 @@ void LogWindow::Render(float width, float height)
 
 					}
 					AddToolTip("Shortcut: Ctrl + F");
+				
 					ImGui::SameLine();
-					if (ImGui::Button("Next"))
+					if (ImGui::ArrowButton("LeftBtn", ImGuiDir_Left))
+					{
+						
+					}
+					AddToolTip("Previos Search \n Shortcut: Shift + F3");
+					
+					ImGui::SameLine();
+					if (ImGui::ArrowButton("RightBtn", ImGuiDir_Right))
 					{
 
 					}
-					AddToolTip("Shortcut: F3");
+					AddToolTip("Next Search \n Shortcut: F3");
 
 					ImGui::SameLine();
-					if (ImGui::Button("Previous"))
-					{
-					}
-					AddToolTip("Shortcut: Shift + F3");
+					
+					ImGui::SetNextItemWidth(150);
 
+					static int item_current = 0;
+			
+					ImGui::Combo("Tags", &item_current, &(_comboboxActiveTagsStr[0]), (int)_activeTags.size());
+					
+				
+					ImGui::SameLine();
+					ImGui::ArrowButton("LeftBtn", ImGuiDir_Left);
+					if (ImGui::IsItemHovered())
+					{
+						AddToolTip("Go To Previous Tag ");
+						if (ImGui::IsMouseClicked(0))
+						{
+							std::cout << "Left button clicked" << std::endl;
+							int lineNumber = GetPrevTagLineNumber(n, item_current);
+							GoToLine(n, 400, lineNumber);
+							
+						}
+					}
+
+					ImGui::SameLine();
+					ImGui::ArrowButton("RightBtn", ImGuiDir_Right);
+
+					if (ImGui::IsItemHovered())
+					{
+						AddToolTip("Go To Next Tag ");
+						if (ImGui::IsMouseClicked(0))
+						{
+							std::cout << "Right button clicked" << std::endl;
+							int lineNumber = GetNextTagLineNumber(n, item_current);
+							GoToLine(n, 400, lineNumber);
+							_shouldGoToLine = true;
+						}
+					}
+					
 					ImGui::Separator();
 					DrawPureLogs(width, n);
 					ImGui::Separator();
@@ -177,15 +217,14 @@ void LogWindow::Render(float width, float height)
 					DrawTaggedLogs(width, n);
 					ImGui::EndTabItem();
 				}
-			}
+			
+}
 
 			ImGui::EndTabBar();
 		}
 
 		ImGui::SameLine();
 		ImGui::Spacing();
-		
-		
 		
 	}
 
@@ -196,8 +235,6 @@ void LogWindow::Render(float width, float height)
 //	ImGui::ShowStyleEditor();
 	ImGui::End();
 }
-
-
 
 bool LogWindow::CanOpenSelectedFile(wchar_t * file_name)
 {
@@ -241,7 +278,7 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 	ImGui::BeginChild("scrolling", ImVec2(width - 25, 400), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
 
-	int counter = _openedFiles[tabId]->GetLineCounter();
+	int counter = _openedFiles[tabId]->GetLineCount();
 	ImGuiTextBuffer* buf = _openedFiles[tabId]->GetTextBuffer();
 	const char* buf_start = buf->begin();
 	const char* buf_end = buf->end();
@@ -251,7 +288,7 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 	for (int i = 0; i < counter; i++)
 	{
 		const char* line_start = buf_start + _openedFiles[tabId]->LineOffsets[i];
-		const char* line_end = (i + 1 < _openedFiles[tabId]->LineOffsets.Size) ? (buf_start + _openedFiles[tabId]->LineOffsets[i + 1] - 1) : buf_end;
+		const char* line_end = (i + 1 < _openedFiles[tabId]->LineOffsets.Size) ? (buf_start + _openedFiles[tabId]->LineOffsets[i + 1] ) : buf_end;
 		ImGui::PushID(i);
 		static ImVec4 col;
 		bool shouldPaint = false;
@@ -264,24 +301,86 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 			{
 				ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[tagIndex]->GetBgColor());
 				ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[tagIndex]->GetTextColor());
-				ImGui::TextUnformattedWBg(line_start, line_end);
+				ImGui::SelectableTextUnformattedBG(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
 				ImGui::PopStyleColor(2);
 			}
 			else
 			{
-				ImGui::TextUnformatted(line_start, line_end);
+				ImGui::SelectableTextUnformatted(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
 			}
 
 		}
 		else
 		{
-			ImGui::TextUnformatted(line_start, line_end);
+			ImGui::SelectableTextUnformatted(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
 		}
 
 	}
 
 	if (*_openedFiles[tabId]->IsFollowTailsActive())
+	{
 		ImGui::SetScrollHereY(1.0f);
+	}
+	else if(_shouldGoToLine == true)
+	{
+		
+		std::cout << "_pureLogScrollY " << _pureLogScrollY << std::endl;
+		std::cout << "Height " << ImGui::GetWindowHeight() << std::endl;
+		ImGui::SetScrollY(_pureLogScrollY * 16 * _openedFiles[tabId]->GetLineCount());
+		_shouldGoToLine = false;
+	}
+	
+	static bool copyMenuActive = false;
+	if (ImGui::IsWindowHovered())
+	{
+		static bool rightClickBuffer = false;
+		if (ImGui::IsMouseDown(1) && !rightClickBuffer)
+		{
+			for (int i = 0; i < _openedFiles[tabId]->GetLineCount(); i++)
+			{
+				if (_openedFiles[tabId]->LineSelections[i] == true)
+				{
+					rightClickBuffer = true;
+					copyMenuActive = true;
+					std::cout << "Right Click" << std::endl;
+					break;
+				}
+			}
+		}
+		else if(ImGui::IsMouseDown(1) == false)
+		{
+			rightClickBuffer = false;
+		}
+		
+		if (copyMenuActive)
+		{
+			ImGui::OpenPopup("my_file_popupw");
+		}
+	}
+
+	if (ImGui::BeginPopup("my_file_popupw"))
+	{
+		if (ImGui::IsMouseDown(0))
+		{
+			copyMenuActive = false;
+			ImGui::CloseCurrentPopup();
+		}
+		ImGui::Button("Copy Selected Lines");
+		
+		if (ImGui::IsItemHovered())
+		{
+			if (ImGui::IsMouseClicked(0))
+			{
+				CalculateClipboardDataBySelectedLines(tabId);
+				std::cout <<"clipboard copy value " << _copyClipboardData << std::endl;
+				CopyClipboardDataToClipboard();
+				
+			}
+		}
+		
+
+		ImGui::EndPopup();
+	}
 
 	ImGui::PopStyleVar();
 	ImGui::EndChild();
@@ -295,7 +394,7 @@ void LogWindow::DrawTaggedLogs(float width, int tabId)
 	ImGui::BeginChild("scrolling32", ImVec2(width - 25, 400), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
 
-	int counter = _openedFiles[tabId]->GetLineCounter();
+	int counter = _openedFiles[tabId]->GetLineCount();
 	ImGuiTextBuffer* buf = _openedFiles[tabId]->GetTextBuffer();
 	const char* buf_start = buf->begin();
 	const char* buf_end = buf->end();
@@ -306,16 +405,43 @@ void LogWindow::DrawTaggedLogs(float width, int tabId)
 	{
 		if (_openedFiles[tabId]->LineTags[i] > 0)
 		{
-			const char* line_start = buf_start + _openedFiles[tabId]->LineOffsets[i];
-			const char* line_end = (i + 1 < _openedFiles[tabId]->LineOffsets.Size) ? (buf_start + _openedFiles[tabId]->LineOffsets[i + 1] - 1) : buf_end;
-			ImGui::PushID(i);
-			static ImVec4 col;
-			bool shouldPaint = false;
-			int tagId = 0;
-		
 			int tagIndex = GetTagIndex(_openedFiles[tabId]->LineTags[i]);
 			if (tagIndex >= 0 && _activeTags[tagIndex]->IsActive())
 			{
+				const char* line_start = buf_start + _openedFiles[tabId]->LineOffsets[i];
+				const char* line_end = (i + 1 < _openedFiles[tabId]->LineOffsets.Size) ? (buf_start + _openedFiles[tabId]->LineOffsets[i + 1] - 1) : buf_end;
+				ImGui::PushID(i);
+				static ImVec4 col;
+				bool shouldPaint = false;
+				int tagId = 0;
+				ImGui::ArrowButton("UpToLine", ImGuiDir_Up);
+				if (ImGui::IsItemHovered())
+				{
+					std::string str("Go To Line ");
+					str += std::to_string(i);
+					AddToolTip(str.c_str());
+					if (ImGui::IsMouseClicked(0))
+					{
+						GoToLine(tabId, 400, i);
+					}
+				}
+
+				ImGui::SameLine();
+				ImGui::ArrowButton("Copy Line", ImGuiDir_Down);
+				if (ImGui::IsItemHovered())
+				{
+					std::string str("Copy Line ");
+					str += std::to_string(i);
+					AddToolTip(str.c_str());
+					if (ImGui::IsMouseClicked(0))
+					{
+						CalculateClipboardDataByLine(tabId, i);
+						CopyClipboardDataToClipboard();
+					}
+				}
+
+				ImGui::SameLine();
+		
 				ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[tagIndex]->GetBgColor());
 				ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[tagIndex]->GetTextColor());
 				ImGui::TextUnformattedWBg(line_start, line_end);
@@ -546,6 +672,86 @@ void LogWindow::DrawTagWorks(float width)
 	}
 }
 
+void LogWindow::OnTagsRefreshed()
+{
+	memset(_comboboxActiveTagsStr, 0, sizeof(char)*MAX_TAG_COUNT*MAX_TAG_LENGTH);
+
+	int lenght = _activeTags.size();
+	int strIndex = 0;
+	for (int i = 0; i < lenght; i++)
+	{
+		int len = std::strlen(_activeTags[i]->GetTag());
+		std::strcpy(&(_comboboxActiveTagsStr[strIndex]), _activeTags[i]->GetTag());
+		strIndex = strIndex + len + 1;
+	}
+}
+
+void LogWindow::GoToLine(int fileIndex, int height, int lineNumber)
+{
+	_shouldGoToLine = true;
+	_openedFiles[fileIndex]->SetFollowTail(false);
+
+	int lineCount = _openedFiles[fileIndex]->GetLineCount();
+	int lineInWindow = (int)(height / (FONT_SIZE + 1));
+	if (lineNumber < lineInWindow)
+	{
+		_pureLogScrollY = 0.0f;
+	}
+	else if (lineNumber > lineCount - lineInWindow)
+	{
+		_pureLogScrollY = 1.0f;
+	}
+	else
+	{
+		_pureLogScrollY = (float)lineNumber / (float)(lineCount);
+	}
+	std::cout << "height" << height << std::endl;
+	std::cout << "lineInWindow" << lineInWindow << std::endl;
+	std::cout << "lineCount" << lineCount << std::endl;
+	std::cout << "lineNumber" << lineNumber << std::endl;
+	std::cout << "scroll value : " << _pureLogScrollY << std::endl;
+	_currentLine = lineNumber;
+
+}
+
+int LogWindow::GetNextTagLineNumber(int fileIndex, int tagIndex)
+{
+	int tagID = _activeTags[tagIndex]->GetTagID();
+	std::cout << "GetNextTagLineNumber\n TagID : " << tagID << std::endl;
+	std::cout << "_currentLine : " << _currentLine << std::endl;
+	for (int i = _currentLine+1; i < _openedFiles[fileIndex]->GetLineCount(); i++)
+	{
+		if (_openedFiles[fileIndex]->LineTags[i] == tagID)
+		{
+			std::cout << "Return : " << i << std::endl;
+			return i;
+		}
+	}
+
+	return _currentLine;
+}
+
+int LogWindow::GetPrevTagLineNumber(int fileIndex, int tagIndex)
+{
+	if (_currentLine <= 0)
+	{
+		return 0;
+	}
+
+	int tagID = _activeTags[tagIndex]->GetTagID();
+	std::cout << "GetPrevTagLineNumber\n TagID : " << tagID << std::endl;
+	for (int i = _currentLine - 1; i >= 0; i--)
+	{
+		if (_openedFiles[fileIndex]->LineTags[i] == tagID)
+		{
+			std::cout << "Return : " << i << std::endl;
+			return i;
+		}
+	}
+
+	return _currentLine;
+}
+
 void LogWindow::EditTag(bool isNew)
 {
 	if (_itemToEdit == nullptr)
@@ -599,6 +805,7 @@ void LogWindow::EditTag(bool isNew)
 				_openedFiles[_activeTabIndex]->ReadFile(&_activeTags);
 			}
 		}
+		OnTagsRefreshed();
 		_itemToEdit = nullptr;
 	}
 
@@ -629,6 +836,7 @@ void LogWindow::EditTag(bool isNew)
 		{
 			_activeTags.erase(_activeTags.begin() + index);
 		}
+		OnTagsRefreshed();
 		_itemToEdit = nullptr;
 		delete(item);
 		_tagToEdit = -1;
@@ -638,4 +846,63 @@ void LogWindow::EditTag(bool isNew)
 	ImGui::EndPopup();
 }
 
+void LogWindow::CalculateClipboardDataByLine(int tabId, int line)
+{
+	memset(_copyClipboardData, 0, sizeof(char) * MAX_CLIPBOARD_COPY);
+	int l_lenght = 0;
+	ImGuiTextBuffer* buf = _openedFiles[tabId]->GetTextBuffer();
+	const char* buf_start = buf->begin();
+	const char* buf_end = buf->end();
 
+	const char* line_start = buf_start + _openedFiles[tabId]->LineOffsets[line];
+	const char* line_end = (line + 1 < _openedFiles[tabId]->LineOffsets.Size) ? (buf_start + _openedFiles[tabId]->LineOffsets[line + 1]) : buf_end;
+	const char* chrptr = line_start;
+	while (l_lenght < MAX_CLIPBOARD_COPY && chrptr != line_end)
+	{
+		_copyClipboardData[l_lenght] = *chrptr;
+		chrptr++;
+		l_lenght++;
+	}
+}
+
+void LogWindow::CalculateClipboardDataBySelectedLines(int tabId)
+{
+	memset(_copyClipboardData, 0, sizeof(char) * MAX_CLIPBOARD_COPY);
+	int l_lenght = 0;
+	ImGuiTextBuffer* buf = _openedFiles[tabId]->GetTextBuffer();
+	const char* buf_start = buf->begin();
+	const char* buf_end = buf->end();
+
+	for (int i = 0; i < _openedFiles[tabId]->GetLineCount(); i++)
+	{
+		if (_openedFiles[tabId]->LineSelections[i] == true)
+		{
+			const char* line_start = buf_start + _openedFiles[tabId]->LineOffsets[i];
+			const char* line_end = (i + 1 < _openedFiles[tabId]->LineOffsets.Size) ? (buf_start + _openedFiles[tabId]->LineOffsets[i + 1]) : buf_end;
+			const char* chrptr = line_start;
+			while (l_lenght < MAX_CLIPBOARD_COPY && chrptr != line_end)
+			{
+				_copyClipboardData[l_lenght] = *chrptr;
+				chrptr++;
+				l_lenght++;
+			}
+		}
+		if (l_lenght >= MAX_CLIPBOARD_COPY)
+		{
+			break;
+		}
+	}
+}
+
+void LogWindow::CopyClipboardDataToClipboard()
+{
+	char* lMem;
+	const size_t len = std::strlen(_copyClipboardData) + 1;
+	HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len);
+	memcpy(GlobalLock(hMem), _copyClipboardData, len);
+	GlobalUnlock(hMem);
+	OpenClipboard(0);
+	EmptyClipboard();
+	SetClipboardData(CF_TEXT, hMem);
+	CloseClipboard();
+}

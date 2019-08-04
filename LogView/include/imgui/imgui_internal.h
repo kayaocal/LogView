@@ -413,7 +413,8 @@ enum ImGuiTextFlags_
 {
     ImGuiTextFlags_None = 0,
     ImGuiTextFlags_NoWidthForLargeClippedText = 1 << 0,
-    ImGuiTextFlags_BG = 1 << 1
+    ImGuiTextFlags_BG = 1 << 1,
+    ImGuiTextFlags_Selectable = 1 << 2
 };
 
 // FIXME: this is in development, not exposed/functional as a generic feature yet.
@@ -1611,7 +1612,7 @@ namespace ImGui
 #endif
 
     // Widgets
-    IMGUI_API void          TextEx(const char* text, const char* text_end = NULL, ImGuiTextFlags flags = 0);
+    IMGUI_API void          TextEx(const char* text, const char* text_end = NULL, ImGuiTextFlags flags = 0, bool* selected = NULL);
     IMGUI_API bool          ButtonEx(const char* label, const ImVec2& size_arg = ImVec2(0,0), ImGuiButtonFlags flags = 0);
     IMGUI_API bool          CloseButton(ImGuiID id, const ImVec2& pos);
     IMGUI_API bool          CollapseButton(ImGuiID id, const ImVec2& pos);

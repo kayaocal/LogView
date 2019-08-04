@@ -127,12 +127,13 @@ static ImVec2           InputTextCalcTextSizeW(const ImWchar* text_begin, const 
 // - BulletTextV()
 //-------------------------------------------------------------------------
 
-void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags)
+void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags, bool* selected)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
         return;
 
+	int id = window->GetID(text, text_end);
     ImGuiContext& g = *GImGui;
     IM_ASSERT(text != NULL);
     const char* text_begin = text;
@@ -155,11 +156,6 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags)
 
         // Lines to skip (can't skip when logging text)
         ImVec2 pos = text_pos;
-
-
-	
-
-
 
 
         if (!g.LogEnabled)
@@ -224,7 +220,9 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags)
 		if ((flags & ImGuiTextFlags_BG) > 0)
 		{
 			ImU32 xcol = GetColorU32(ImGuiCol_TextBG);
-			RenderFrame(bb.Min, bb.Max, xcol, true, 0);
+			ImVec2 textbg_size(1920, text_size.y);
+			ImRect bb_bg(text_pos, text_pos+ textbg_size);
+			RenderFrame(bb_bg.Min, bb_bg.Max, xcol, true, 0);
 		}
     }
     else
@@ -238,10 +236,41 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags)
             return;
 
         // Render (we don't hide text after ## in this end-user function)
-		if ((flags & ImGuiTextFlags_BG) > 0)
+		
+		if (flags & ImGuiTextFlags_Selectable && selected != nullptr)
+		{
+			ImGuiButtonFlags button_flags = 0;
+			button_flags |= ImGuiButtonFlags_PressedOnClickRelease;
+
+
+			bool hovered, held;
+			bool pressed = ButtonBehavior(bb, id, &hovered, &held, button_flags);
+			if (pressed)
+			{
+				*selected = !(*selected);
+			}
+
+			if (*selected)
+			{
+				ImU32 xcol = GetColorU32(ImGuiCol_ButtonActive);
+				RenderFrame(bb.Min, bb.Max, xcol, true, 0);
+				
+			}
+			else if ((flags & ImGuiTextFlags_BG) > 0)
+			{
+				ImU32 xcol = GetColorU32(ImGuiCol_TextBG);
+				ImVec2 textbg_size(1920, text_size.y);
+				ImRect bb_bg(text_pos, text_pos + textbg_size);
+				RenderFrame(bb_bg.Min, bb_bg.Max, xcol, true, 0);
+			}
+		}
+		else if ((flags & ImGuiTextFlags_BG) > 0)
 		{
 			ImU32 xcol = GetColorU32(ImGuiCol_TextBG);
-			RenderFrame(bb.Min, bb.Max, xcol, true, 0);
+
+			ImVec2 textbg_size(1920, text_size.y);
+			ImRect bb_bg(text_pos, text_pos + textbg_size);
+			RenderFrame(bb_bg.Min, bb_bg.Max, xcol, true, 0);
 		}
 
         RenderTextWrapped(bb.Min, text_begin, text_end, wrap_width);
@@ -257,6 +286,15 @@ void ImGui::TextUnformattedWBg(const char* text, const char* text_end)
 void ImGui::TextUnformatted(const char* text, const char* text_end)
 {
     TextEx(text, text_end, ImGuiTextFlags_NoWidthForLargeClippedText);
+}
+
+void ImGui::SelectableTextUnformatted(const char* text, const char* text_end, bool* selected)
+{
+	TextEx(text, text_end, ImGuiTextFlags_NoWidthForLargeClippedText | ImGuiTextFlags_Selectable, selected);
+}
+void ImGui::SelectableTextUnformattedBG(const char* text, const char* text_end, bool* selected)
+{
+	TextEx(text, text_end, ImGuiTextFlags_Selectable | ImGuiTextFlags_BG, selected);
 }
 
 void ImGui::Text(const char* fmt, ...)
