@@ -12,13 +12,14 @@ class TagItem
 	int _tagID;
 
 public:
+	char hexColor[7];
+
 	TagItem(bool isActive, const ImVec4& texCol, const ImVec4& bgCol, int tagID = 0);
 
 	ImVec4& GetBgColor();
 	ImVec4& GetTextColor();
 	char* GetBgColorHex();
 	char* GetTextColorHex();
-	char hexColor[16];
 	void SetTag(char* str);
 	void SetTagID(int tagID);
 	int GetTagID();
