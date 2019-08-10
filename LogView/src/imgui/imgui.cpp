@@ -9254,6 +9254,17 @@ void ImGui::LoadIniSettingsFromDisk(const char* ini_filename)
     IM_FREE(file_data);
 }
 
+char* ImGui::LoadIniSettingsFromDisk()
+{
+	ImGuiContext& g = *GImGui;
+	size_t file_data_size = 0;
+	char* file_data = (char*)ImFileLoadToMemory(g.IO.IniFilename, "rb", &file_data_size);
+	if (!file_data)
+		nullptr;
+
+	return file_data;
+}
+
 ImGuiSettingsHandler* ImGui::FindSettingsHandler(const char* type_name)
 {
     ImGuiContext& g = *GImGui;

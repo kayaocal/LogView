@@ -7,3 +7,20 @@
 #define FONT_SIZE 15
 #define MAX_CLIPBOARD_COPY 1000
 
+static int HexToInt(char hex)
+{
+	if (hex >= 48 && hex < 58)
+	{
+		return hex - 48;
+	}
+
+	if (hex > 96 && hex < 103)
+	{
+		return hex - 87;
+	}
+
+	if (hex > 64 && hex < 71)
+	{
+		return hex - 55;
+	}
+}

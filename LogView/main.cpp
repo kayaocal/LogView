@@ -149,6 +149,7 @@ int main(int, char**)
             ResetDevice();
     }
 
+	logWnd->SaveAppData();
     ImGui_ImplDX9_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();

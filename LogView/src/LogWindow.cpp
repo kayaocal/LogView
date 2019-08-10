@@ -13,6 +13,42 @@ LogWindow::LogWindow()
 	window_flags |= ImGuiWindowFlags_MenuBar;
 	_tagToEdit = -1;
 	p_open = true;
+
+		
+	_appDataPath = boost::filesystem::temp_directory_path();
+	
+	_appDataPath.append(L"\\LogView");
+	if (boost::filesystem::is_directory(_appDataPath) == false)
+	{
+		std::cout << "Directory not exist"<<std::endl;
+		if (boost::filesystem::create_directory(_appDataPath))
+		{
+			std::cout << "Create directory success" << std::endl;
+		}
+		else
+		{
+			std::cout << "Create directory is not succesfull" << std::endl;
+
+		}
+	}
+
+	_appDataPath.append(L"\\app.yaml");
+	std::wcout << _appDataPath.c_str() << std::endl;
+	if (boost::filesystem::exists(_appDataPath))
+	{
+		std::cout << "File Exist!" << std::endl;
+		ReadSavedData();
+	}
+	else
+	{
+		std::cout << "File is not exist!" << std::endl;
+
+		SaveAppData();
+		
+	}
+
+	  
+
 }
 
 LogWindow::~LogWindow()
@@ -477,7 +513,7 @@ int LogWindow::CalculateAvaibleTagID()
 {
 	int tags[MAX_TAG_COUNT] = { 0 };
 	
-	for (int i = 0; i < _activeTags.size(); i++)
+	for (size_t i = 0; i < _activeTags.size(); i++)
 	{
 		std::cout << "tag : " << _activeTags[i]->GetTagID()<<std::endl;
 		int number = _activeTags[i]->GetTagID();
@@ -524,7 +560,7 @@ void LogWindow::DrawTagWorks(float width)
 	}
 	int passiveCounter = tagCount - active_counter;
 
-	for (int i = 0; i < tagCount; i++)
+	for (size_t i = 0; i < tagCount; i++)
 	{
 		if (_activeTags[i]->IsActive() == false)
 		{
@@ -580,7 +616,7 @@ void LogWindow::DrawTagWorks(float width)
 	ImGui::SameLine();
 	l_counter = 0;
 	additionalLine = 1;
-	for (int i = 0; i < tagCount; i++)
+	for (size_t i = 0; i < tagCount; i++)
 	{
 		if (_activeTags[i]->IsActive() == true)
 		{
@@ -752,12 +788,78 @@ int LogWindow::GetPrevTagLineNumber(int fileIndex, int tagIndex)
 	return _currentLine;
 }
 
+void LogWindow::ReadSavedData()
+{
+	//std::string file;
+	//boost::filesystem::load_string_file(_appDataPath, file);
+	//std::cout << "FILE : " << file << std::endl;
+	_appData = YAML::LoadFile(_appDataPath.generic_string());
+
+	for (int i = 0; i < _appData["OF_names"].size(); i++)
+	{
+		std::wstring wc(_appData["OF_names"][i].as<std::string>().length(), L'\0');
+		std::wstring wc2(_appData["OF_titles"][i].as<std::string>().length(), L'\0');
+		mbstowcs(&wc[0], _appData["OF_names"][i].as<std::string>().c_str(), _appData["OF_names"][i].as<std::string>().length());
+		mbstowcs(&wc2[0], _appData["OF_titles"][i].as<std::string>().c_str(), _appData["OF_titles"][i].as<std::string>().length());
+		LogView::LogFile* file = new LogView::LogFile(&wc[0], &wc2[0]);
+		file->SetFollowTail(_appData["OF_tail"][i].as<bool>());
+		_openedFiles.push_back(file);
+	}
+
+	for (int i = 0; i < _appData["TAG_names"].size(); i++)
+	{
+		int tTagID = CalculateAvaibleTagID();
+		if (tTagID >= 0)
+		{
+			bool isActive = _appData["TAG_is_active"][i].as<bool>();
+			TagItem* item = new TagItem(isActive, ImVec4(0.0f, 0.0f, 0.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), (1 << (tTagID)));
+			item->SetBGColorHex((char*)_appData["TAG_bg_color"][i].as<std::string>().c_str());
+			item->SetTextColorHex((char*)_appData["TAG_text_color"][i].as<std::string>().c_str());
+			item->SetTag((char*)_appData["TAG_names"][i].as<std::string>().c_str());
+			_activeTags.push_back(item);
+		}
+	}
+
+}
+
+void LogWindow::SaveAppData()
+{
+	_appData.reset();
+	_appData["OF_namesW"].push_back((char*)_openedFiles[0]->GetFileNameW());
+	if (_openedFiles.size() > 0)
+	{
+		for (int i = 0; i < _openedFiles.size(); i++)
+		{
+			_bstr_t b(_openedFiles[i]->GetFileNameW());
+			const char* c = b;
+			_appData["OF_names"].push_back(c);
+			_appData["OF_titles"].push_back(_openedFiles[i]->GetFileTitleC());
+			_appData["OF_tail"].push_back(*_openedFiles[i]->IsFollowTailsActive());
+		}
+	}
+	
+	if (_activeTags.size() > 0)
+	{
+		for (int i = 0; i < _activeTags.size(); i++)
+		{
+			_appData["TAG_names"].push_back(_activeTags[i]->GetTag());
+			_appData["TAG_bg_color"].push_back(_activeTags[i]->GetBgColorHex());
+			_appData["TAG_text_color"].push_back(_activeTags[i]->GetTextColorHex());
+			_appData["TAG_is_active"].push_back(_activeTags[i]->IsActive());
+				
+		}
+	}
+	
+
+	boost::filesystem::ofstream fout(_appDataPath);
+	fout << _appData;
+}
+
 void LogWindow::EditTag(bool isNew)
 {
 	if (_itemToEdit == nullptr)
 	{
 		std::cout << "Error : 386"<<std::endl;
-		
 		return;
 	}
 
@@ -784,6 +886,7 @@ void LogWindow::EditTag(bool isNew)
 	const char* btn_text = add_tag;
 	if (isNew == false)
 	{
+		strcpy(bufTagName, item->GetTag());
 		btn_text = update_tag;
 	}
 
@@ -823,7 +926,7 @@ void LogWindow::EditTag(bool isNew)
 	if (ImGui::Button(btn_text))
 	{
 		int index = -1;
-		for (int i = 0; i < _activeTags.size(); i++)
+		for (size_t i = 0; i < _activeTags.size(); i++)
 		{
 			if (_activeTags[i] == item)
 			{
@@ -896,7 +999,6 @@ void LogWindow::CalculateClipboardDataBySelectedLines(int tabId)
 
 void LogWindow::CopyClipboardDataToClipboard()
 {
-	char* lMem;
 	const size_t len = std::strlen(_copyClipboardData) + 1;
 	HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len);
 	memcpy(GlobalLock(hMem), _copyClipboardData, len);
@@ -906,3 +1008,7 @@ void LogWindow::CopyClipboardDataToClipboard()
 	SetClipboardData(CF_TEXT, hMem);
 	CloseClipboard();
 }
+
+
+
+

@@ -6,6 +6,7 @@
 #include "General.h"
 #include "LogFile.h"
 #include "TagItem.h"
+#include <yaml-cpp/yaml.h>
 
 class LogWindow
 {
@@ -27,7 +28,8 @@ private :
 	std::vector<TagItem*> _activeTags;
 	LogView::LogFile* activeFile;
 	TagItem* _itemToEdit = nullptr;
-
+	char temp_path_folder[MAX_PATH];
+	char _folderedPath[512];
 	bool CanOpenSelectedFile(wchar_t* file_name);
 	void DrawTabs();
 	void AddToolTip(const char* chr);
@@ -36,6 +38,8 @@ private :
 	void CalculateClipboardDataByLine(int tabId, int line);
 	void CalculateClipboardDataBySelectedLines(int tabId);
 	void CopyClipboardDataToClipboard();
+	int GetTagType(char * tagStart, char * tagEnd);
+
 	void DrawTaggedLogs(float width, int tabId);
 	int GetTagIndex(int tagID);
 	int CalculateAvaibleTagID();
@@ -46,11 +50,18 @@ private :
 	int GetPrevTagLineNumber(int file_index, int tagIndex);
 	void GetPrevSearchLineNumber();
 	void GetNextSearchLineNumber();
+	void ReadSavedData();
+
+	YAML::Node _appData;
+	boost::filesystem::path _appDataPath;
+
+	
 public:
 	LogWindow();
 	~LogWindow();
 
 	ImFont* RobotoFont;
+	void SaveAppData();
 
 
 	

@@ -16,14 +16,19 @@ public:
 
 	ImVec4& GetBgColor();
 	ImVec4& GetTextColor();
-
+	char* GetBgColorHex();
+	char* GetTextColorHex();
+	char hexColor[16];
 	void SetTag(char* str);
 	void SetTagID(int tagID);
 	int GetTagID();
 	char* GetTag();
 	void SetBgColor(float* col);
 	void SetTextColor(float* col);
+	void SetTextColorHex(char* hexCol);
+	void SetBGColorHex(char* hexCol);
 	void SetIsActive(bool isActive);
+	
 	void Toggle();
 	bool IsActive();
 	bool Filter(const char* haystack, const char* haystack_end);
