@@ -1,4 +1,7 @@
 #pragma once
+
+#include <iostream>
+
 #define MAX_FILE_NAME 200
 #define MAX_FILE_TITLE 50
 #define MAX_TAG_LENGTH 50
@@ -28,4 +31,37 @@ static int HexToInt(char hex)
 	{
 		return hex - 55;
 	}
+}
+
+static void ByteToChar(char* buffer, std::uintmax_t size)
+{
+	int kb = size / 1024;
+	int mb = kb / 1024;
+
+	if (mb > 0)
+	{
+		std::sprintf(buffer, "%d.%d mb", mb, kb % 1024);
+	}
+	else if (kb > 0)
+	{
+		std::sprintf(buffer, "%d.%d kb", kb, (size % 1024));
+	}
+	else
+	{
+		std::sprintf(buffer, "00.%d kb", size);
+	}
+
+}
+
+static char* ColorToHex(char* hexColor, int size, int red, int green, int blue)
+{
+	snprintf(hexColor, size, "%02x%02x%02x", red, green, blue);
+	return hexColor;
+}
+
+static void HexToColor(char* hexColor, float* red, float* green, float* blue)
+{
+	*red   = ((float)(HexToInt(hexColor[1]) + (HexToInt(hexColor[0]) * 16))) / 255;
+	*green = ((float)(HexToInt(hexColor[3]) + (HexToInt(hexColor[2]) * 16))) / 255;
+	*blue  = ((float)(HexToInt(hexColor[5]) + (HexToInt(hexColor[4]) * 16))) / 255;
 }

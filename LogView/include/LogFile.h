@@ -30,27 +30,28 @@ namespace LogView
 		bool _followTail;
 		std::ifstream* _pStream;
 		std::uintmax_t _lastFileSize;
-		ImGuiTextBuffer     _buf;
-		ImGuiTextFilter     _filter;
+		ImGuiTextBuffer _buf;
+		ImGuiTextFilter _filter;
 		int _lineCount = 0;
 
 		bool _isUpdated;
 		bool _isDeleted;
 
-	
 	public:
 		ImVector<int>  LineOffsets;
 		ImVector<int>  LineTags;
 		ImVector<int>  LineSearchTag;
 		ImVector<bool>  LineSelections;
 
+		bool* IsActive();
 		bool IsUpdated();
 		bool IsDeleted();
+		char* GetFileNameC();
+		char* GetFileTitleC();
 		wchar_t* GetFileNameW();
 		wchar_t* GetFileTitleW();
-		char* GetFileTitleC();
-		char* GetFileNameC();
-		bool* IsActive();
+
+		std::uintmax_t GetFileSize();
 		bool* IsFollowTailsActive();
 		void SetFollowTail(bool isActive);
 		void SetFileTitleC(char* chr);

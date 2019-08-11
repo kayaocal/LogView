@@ -151,6 +151,11 @@ ImGuiTextBuffer * LogView::LogFile::GetTextBuffer()
 	return &_buf;
 }
 
+std::uintmax_t LogView::LogFile::GetFileSize()
+{
+	return _lastFileSize;
+}
+
 bool LogView::LogFile::IsUpdated()
 {
 	return _isUpdated;

@@ -251,10 +251,15 @@ void LogWindow::Render(float width, float height)
 
 					if (_stricmp(_searchData, _searchTag->GetTag())!=0)
 					{
-						std::cout << "Read file cagirildi" << std::endl;
 						_openedFiles[n]->ReadFile(&_activeTags, _searchTag);
 						strcpy(_searchData, _searchTag->GetTag());
 					}
+					
+					static char filesize[32];
+					ByteToChar(filesize, _openedFiles[n]->GetFileSize());
+					
+					ImGui::SameLine();
+					ImGui::Text(filesize);
 					
 					ImGui::Separator();
 					DrawPureLogs(width, n);
@@ -279,6 +284,7 @@ void LogWindow::Render(float width, float height)
 //	ImGui::ShowStyleEditor();
 	ImGui::End();
 }
+
 
 bool LogWindow::CanOpenSelectedFile(wchar_t * file_name)
 {
