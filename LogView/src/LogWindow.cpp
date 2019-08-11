@@ -322,6 +322,26 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 	ImGui::BeginChild("scrolling", ImVec2(width - 25, 400), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
 
+	if (*_openedFiles[tabId]->IsFollowTailsActive())
+	{
+		if (ImGui::IsWindowHovered())
+		{
+			if (ImGui::GetIO().MouseWheel > 0.0f)
+			{
+				_openedFiles[tabId]->SetFollowTail(false);
+			}
+		}
+	}
+	else if (ImGui::IsWindowHovered())
+	{
+		if (ImGui::GetIO().MouseWheel < 0.0f)
+		{
+			if (ImGui::GetScrollY() / ImGui::GetScrollMaxY() == 1.0f)
+			{
+				_openedFiles[tabId]->SetFollowTail(true);
+			}
+		}
+	}
 	int counter = _openedFiles[tabId]->GetLineCount();
 	ImGuiTextBuffer* buf = _openedFiles[tabId]->GetTextBuffer();
 	const char* buf_start = buf->begin();
@@ -351,6 +371,7 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 			ImGui::PushStyleColor(ImGuiCol_Text, _searchTag->GetTextColor());
 			ImGui::SelectableTextUnformattedBG(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
 			ImGui::PopStyleColor(2);
+			
 		}
 		else if (_openedFiles[tabId]->LineTags[i] > 0)
 		{

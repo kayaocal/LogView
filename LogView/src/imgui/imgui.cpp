@@ -2600,8 +2600,8 @@ void ImGui::RenderBullet(ImDrawList* draw_list, ImVec2 pos, ImU32 col)
 
 void ImGui::RenderMagGlass(ImDrawList* draw_list, ImVec2 pos, ImU32 col)
 {
-	draw_list->AddCircle(pos + ImVec2(4.5,4.5), 5.0f, col);
-	draw_list->AddLine(pos + ImVec2(7.0f, 7.0f), pos + ImVec2(12.5f, 12.5f), col, 1.3f);
+	draw_list->AddCircle(pos + ImVec2(5.5,5.5), 4.5f, col);
+	draw_list->AddLine(pos + ImVec2(8.0f, 8.0f), pos + ImVec2(11.5f, 11.5f), col, 1.3f);
 }
 
 void ImGui::RenderTagIcon(ImDrawList* draw_list, ImVec2 pos, ImU32 col, ImU32 colbg)
