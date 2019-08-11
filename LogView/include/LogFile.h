@@ -41,6 +41,7 @@ namespace LogView
 	public:
 		ImVector<int>  LineOffsets;
 		ImVector<int>  LineTags;
+		ImVector<int>  LineSearchTag;
 		ImVector<bool>  LineSelections;
 
 		bool IsUpdated();
@@ -55,7 +56,7 @@ namespace LogView
 		void SetFileTitleC(char* chr);
 
 		void SerializeLogFile();
-		void ReadFile(std::vector<TagItem*>* tags = nullptr);
+		void ReadFile(std::vector<TagItem*>* tags = nullptr, TagItem* searchTag = nullptr);
 		int CheckFileStatus(bool shouldRead, std::vector<TagItem*>* tags = nullptr);
 		int GetLineCount();
 		

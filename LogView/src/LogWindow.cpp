@@ -14,7 +14,7 @@ LogWindow::LogWindow()
 	_tagToEdit = -1;
 	p_open = true;
 
-		
+	_searchTag = new TagItem(false, ImVec4(0.0f, 0.0f, 0.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
 	_appDataPath = boost::filesystem::temp_directory_path();
 	
 	_appDataPath.append(L"\\LogView");
@@ -53,6 +53,7 @@ LogWindow::LogWindow()
 
 LogWindow::~LogWindow()
 {
+	delete(_searchTag);
 }
 
 void LogWindow::Render(float width, float height)
@@ -187,23 +188,47 @@ void LogWindow::Render(float width, float height)
 					ImGui::SameLine();
 					ImGui::SetNextItemWidth(300);
 					static char searchBuff[32];
-					if (ImGui::InputText("Search", searchBuff, 32, ImGuiInputTextFlags_EnterReturnsTrue))
+					if (ImGui::InputText("Search", searchBuff, MAX_TAG_COUNT, ImGuiInputTextFlags_EnterReturnsTrue))
 					{
-
+						_searchTag->SetTag(searchBuff);
+						_searchTag->SetIsActive(strlen(searchBuff) > 3);
+						
 					}
 					AddToolTip("Shortcut: Ctrl + F");
 				
 					ImGui::SameLine();
 					if (ImGui::ArrowButton("LeftBtn", ImGuiDir_Left))
 					{
-						
+						if (_stricmp(_searchTag->GetTag(), _searchData) != 0)
+						{
+							_searchTag->SetTag(searchBuff);
+							_searchTag->SetIsActive(strlen(searchBuff) > 3);
+						}
+
+						if (_searchTag->IsActive())
+						{
+							int lineNumber = GetPrevSearchLineNumber(n);
+							GoToLine(n, 400, lineNumber);
+						}
 					}
 					AddToolTip("Previos Search \n Shortcut: Shift + F3");
 					
 					ImGui::SameLine();
 					if (ImGui::ArrowButton("RightBtn", ImGuiDir_Right))
 					{
+						if (_stricmp(_searchTag->GetTag(), _searchData) != 0)
+						{
+							_searchTag->SetTag(searchBuff);
+							_searchTag->SetIsActive(strlen(searchBuff) > 3);
+						}
 
+						if (_searchTag->IsActive())
+						{
+							int lineNumber = GetNextSearchLineNumber(n);
+							GoToLine(n, 400, lineNumber);
+						}
+
+						
 					}
 					AddToolTip("Next Search \n Shortcut: F3");
 
@@ -244,6 +269,13 @@ void LogWindow::Render(float width, float height)
 							_shouldGoToLine = true;
 						}
 					}
+
+					if (_stricmp(_searchData, _searchTag->GetTag())!=0)
+					{
+						std::cout << "Read file cagirildi" << std::endl;
+						_openedFiles[n]->ReadFile(&_activeTags, _searchTag);
+						strcpy(_searchData, _searchTag->GetTag());
+					}
 					
 					ImGui::Separator();
 					DrawPureLogs(width, n);
@@ -252,16 +284,13 @@ void LogWindow::Render(float width, float height)
 					ImGui::Separator();
 					DrawTaggedLogs(width, n);
 					ImGui::EndTabItem();
-				}
-			
-}
-
+				}			
+			}
 			ImGui::EndTabBar();
 		}
 
 		ImGui::SameLine();
 		ImGui::Spacing();
-		
 	}
 
 	ImGui::SetWindowSize(ImVec2(width, height), 0);
@@ -330,7 +359,21 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 		bool shouldPaint = false;
 		int tagId = 0;
 		
-		if (_openedFiles[tabId]->LineTags[i] > 0)
+		if (_openedFiles[tabId]->LineSearchTag[i])
+		{
+			ImGui::ArrowButton("Right", ImGuiDir_Right);
+			if (ImGui::IsItemHovered())
+			{
+				AddToolTip("Search Result");
+			}
+
+			ImGui::SameLine();
+			ImGui::PushStyleColor(ImGuiCol_TextBG, _searchTag->GetBgColor());
+			ImGui::PushStyleColor(ImGuiCol_Text, _searchTag->GetTextColor());
+			ImGui::SelectableTextUnformattedBG(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
+			ImGui::PopStyleColor(2);
+		}
+		else if (_openedFiles[tabId]->LineTags[i] > 0)
 		{
 			int tagIndex = GetTagIndex(_openedFiles[tabId]->LineTags[i]);
 			if (tagIndex >= 0 && _activeTags[tagIndex]->IsActive())
@@ -359,7 +402,6 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 	}
 	else if(_shouldGoToLine == true)
 	{
-		
 		std::cout << "_pureLogScrollY " << _pureLogScrollY << std::endl;
 		std::cout << "Height " << ImGui::GetWindowHeight() << std::endl;
 		ImGui::SetScrollY(_pureLogScrollY * 16 * _openedFiles[tabId]->GetLineCount());
@@ -414,7 +456,6 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 			}
 		}
 		
-
 		ImGui::EndPopup();
 	}
 
@@ -597,6 +638,7 @@ void LogWindow::DrawTagWorks(float width)
 			if (ImGui::IsMouseClicked(1))
 			{
 				_tagToEdit = i;
+				strcpy(bufTagName, _activeTags[i]->GetTag());
 			}
 
 			std::cout << std::endl;
@@ -651,6 +693,7 @@ void LogWindow::DrawTagWorks(float width)
 			if (ImGui::IsMouseClicked(1))
 			{
 				_tagToEdit = i;
+				strcpy(bufTagName, _activeTags[_tagToEdit]->GetTag());
 			}
 
 			std::cout << std::endl;
@@ -703,6 +746,7 @@ void LogWindow::DrawTagWorks(float width)
 		if (ImGui::BeginPopupContextItem("UpdateTag"))
 		{
 			_itemToEdit = _activeTags[_tagToEdit];
+			
 			EditTag(false);
 		}
 	}
@@ -788,6 +832,34 @@ int LogWindow::GetPrevTagLineNumber(int fileIndex, int tagIndex)
 	return _currentLine;
 }
 
+int LogWindow::GetNextSearchLineNumber(int file_index)
+{
+	for (int i = _currentLine + 1; i < _openedFiles[file_index]->GetLineCount(); i++)
+	{
+		if (_openedFiles[file_index]->LineSearchTag[i])
+		{
+			std::cout << "Return : " << i << std::endl;
+			return i;
+		}
+	}
+
+	return _currentLine;
+}
+
+int LogWindow::GetPrevSearchLineNumber(int file_index)
+{
+	for (int i = _currentLine - 1; i >= 0; i--)
+	{
+		if (_openedFiles[file_index]->LineSearchTag[i])
+		{
+			std::cout << "Return : " << i << std::endl;
+			return i;
+		}
+	}
+
+	return _currentLine;
+}
+
 void LogWindow::ReadSavedData()
 {
 	//std::string file;
@@ -820,12 +892,14 @@ void LogWindow::ReadSavedData()
 		}
 	}
 
+	OnTagsRefreshed();
+
 }
 
 void LogWindow::SaveAppData()
 {
 	_appData.reset();
-	_appData["OF_namesW"].push_back((char*)_openedFiles[0]->GetFileNameW());
+	
 	if (_openedFiles.size() > 0)
 	{
 		for (int i = 0; i < _openedFiles.size(); i++)
@@ -849,7 +923,6 @@ void LogWindow::SaveAppData()
 				
 		}
 	}
-	
 
 	boost::filesystem::ofstream fout(_appDataPath);
 	fout << _appData;
@@ -875,10 +948,9 @@ void LogWindow::EditTag(bool isNew)
 	ImGui::SameLine();
 	ImGui::Text("Text Color");
 
-	static char bufTagName[MAX_TAG_LENGTH];
+
 	ImGui::InputText("", bufTagName, MAX_TAG_LENGTH, ImGuiInputTextFlags_EnterReturnsTrue);
 	
-
 	ImGui::SameLine();
 	const char* add_tag = "ADD";
 	const char* update_tag = "UPDATE";
@@ -886,12 +958,13 @@ void LogWindow::EditTag(bool isNew)
 	const char* btn_text = add_tag;
 	if (isNew == false)
 	{
-		strcpy(bufTagName, item->GetTag());
 		btn_text = update_tag;
 	}
 
 	if (ImGui::Button(btn_text))
 	{
+		std::cout << "Update " << btn_text << std::endl;
+		std::cout << "bufTagName " << bufTagName << std::endl;
 		if (strlen(bufTagName) > 2)
 		{
 			if (isNew)
@@ -905,7 +978,7 @@ void LogWindow::EditTag(bool isNew)
 			ImGui::CloseCurrentPopup();
 			if (_openedFiles.size() > 0)
 			{
-				_openedFiles[_activeTabIndex]->ReadFile(&_activeTags);
+				_openedFiles[_activeTabIndex]->ReadFile(&_activeTags, _searchTag);
 			}
 		}
 		OnTagsRefreshed();

@@ -46,12 +46,13 @@ void LogView::LogFile::SerializeLogFile()
 	std::cout << "ERR SerializeLogFile is NOT implemented" << std::endl;
 }
 
-void LogView::LogFile::ReadFile(std::vector<TagItem*>* tags)
+void LogView::LogFile::ReadFile(std::vector<TagItem*>* tags, TagItem* searchTag)
 {
 	boost::filesystem::path p(_wFileName);
 	boost::filesystem::fstream stream(p, boost::filesystem::ifstream::in);
 	_buf.clear();
 	LineOffsets.clear();
+	LineSearchTag.clear();
 	LineTags.clear();
 	_lineCount = 0;
 	int l_offsets = 0;
@@ -67,8 +68,22 @@ void LogView::LogFile::ReadFile(std::vector<TagItem*>* tags)
 	{
 		int tag_index = 0;
 		int tag_id = 0;
+		int search_tag_id = 0;
 		//line = std::to_string(_lineCount) + " - " + line;
 		_buf.append(line.c_str());
+
+		if (searchTag)
+		{
+			if (strlen(searchTag->GetTag()) > 3)
+			{
+				if (searchTag->Filter(line.c_str(), line.c_str() + line.length() + 1))
+				{
+					search_tag_id = 1;
+				}
+			}
+		}
+
+		LineSearchTag.push_back(search_tag_id);
 
 		while (tag_index < tag_count)
 		{
@@ -79,6 +94,7 @@ void LogView::LogFile::ReadFile(std::vector<TagItem*>* tags)
 			}
 			tag_index++;
 		}
+		
 		LineTags.push_back(tag_id);
 		LineOffsets.push_back(l_offsets);
 		

@@ -25,10 +25,13 @@ private :
 	int _activeTabIndex;
 	int _currentLine;
 	float _pureLogScrollY;
-	
+	char bufTagName[MAX_TAG_LENGTH];
+
 	std::vector<LogView::LogFile*> _openedFiles;
 	std::vector<TagItem*> _activeTags;
 
+	TagItem* _searchTag;
+	char _searchData[MAX_TAG_LENGTH];
 	YAML::Node _appData;
 	boost::filesystem::path _appDataPath;
 	
@@ -52,6 +55,8 @@ private :
 	int CalculateAvaibleTagID();
 	int GetNextTagLineNumber(int file_index, int tagIndex);
 	int GetPrevTagLineNumber(int file_index, int tagIndex);
+	int GetNextSearchLineNumber(int file_index);
+	int GetPrevSearchLineNumber(int file_index);
 
 public:
 	LogWindow();
