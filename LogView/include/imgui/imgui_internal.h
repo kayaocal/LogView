@@ -1600,6 +1600,9 @@ namespace ImGui
     // Render helpers (those functions don't access any ImGui state!)
     IMGUI_API void          RenderArrow(ImDrawList* draw_list, ImVec2 pos, ImU32 col, ImGuiDir dir, float scale = 1.0f);
     IMGUI_API void          RenderBullet(ImDrawList* draw_list, ImVec2 pos, ImU32 col);
+	IMGUI_API void			RenderMagGlass(ImDrawList * draw_list, ImVec2 pos, ImU32 col);
+	IMGUI_API void			RenderTagIcon(ImDrawList * draw_list, ImVec2 pos, ImU32 col, ImU32 colbg);
+	IMGUI_API void			RenderCopyIcon(ImDrawList * draw_list, ImVec2 pos, ImU32 col, ImU32 colbg);
     IMGUI_API void          RenderMouseCursor(ImDrawList* draw_list, ImVec2 pos, float scale, ImGuiMouseCursor mouse_cursor = ImGuiMouseCursor_Arrow);
     IMGUI_API void          RenderArrowPointingAt(ImDrawList* draw_list, ImVec2 pos, ImVec2 half_sz, ImGuiDir direction, ImU32 col);
     IMGUI_API void          RenderRectFilledRangeH(ImDrawList* draw_list, const ImRect& rect, ImU32 col, float x_start_norm, float x_end_norm, float rounding);
@@ -1617,6 +1620,9 @@ namespace ImGui
     IMGUI_API bool          CloseButton(ImGuiID id, const ImVec2& pos);
     IMGUI_API bool          CollapseButton(ImGuiID id, const ImVec2& pos);
     IMGUI_API bool          ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size_arg, ImGuiButtonFlags flags);
+	IMGUI_API bool			MagGlassButtonEx(const char * str_id, ImVec2 size, ImGuiButtonFlags flags);
+	IMGUI_API bool			CopyButtonEx(const char * str_id, ImVec2 size, ImGuiButtonFlags flags);
+	IMGUI_API bool			TagButtonEx(const char * str_id, ImVec2 size, ImGuiButtonFlags flags);
     IMGUI_API void          Scrollbar(ImGuiAxis axis);
     IMGUI_API bool          ScrollbarEx(const ImRect& bb, ImGuiID id, ImGuiAxis axis, float* p_scroll_v, float avail_v, float contents_v, ImDrawCornerFlags rounding_corners);
     IMGUI_API ImGuiID       GetScrollbarID(ImGuiWindow* window, ImGuiAxis axis);

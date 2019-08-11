@@ -2598,6 +2598,28 @@ void ImGui::RenderBullet(ImDrawList* draw_list, ImVec2 pos, ImU32 col)
     draw_list->AddCircleFilled(pos, draw_list->_Data->FontSize * 0.20f, col, 8);
 }
 
+void ImGui::RenderMagGlass(ImDrawList* draw_list, ImVec2 pos, ImU32 col)
+{
+	draw_list->AddCircle(pos + ImVec2(4.5,4.5), 5.0f, col);
+	draw_list->AddLine(pos + ImVec2(7.0f, 7.0f), pos + ImVec2(12.5f, 12.5f), col, 1.3f);
+}
+
+void ImGui::RenderTagIcon(ImDrawList* draw_list, ImVec2 pos, ImU32 col, ImU32 colbg)
+{
+	const float h = draw_list->_Data->FontSize * 1.00f;
+	ImVec2 center = pos + ImVec2(h * 0.50f, h * 0.50f);
+	RenderArrow(pos + ImVec2(0.0f, -2.0f) , ImGuiDir_Up, 0.7f);
+	draw_list->AddRectFilled(center + ImVec2(-2.4f, -3.0f), center + ImVec2(2.4f, 4.0f), col, 0.2f, 15);
+}
+
+void ImGui::RenderCopyIcon(ImDrawList* draw_list, ImVec2 pos, ImU32 col, ImU32 colbg)
+{
+	const float h = draw_list->_Data->FontSize * 1.00f;
+	ImVec2 center = pos + ImVec2(h * 0.50f, h * 0.50f);
+	draw_list->AddRectFilled(center + ImVec2(-3.5f, -6.0f), center + ImVec2(4.5f, 5.0f), col);
+	draw_list->AddRectFilled(center + ImVec2(-6.0f, -3.0f), center + ImVec2(2.0f, 8.0f), colbg);
+}
+
 void ImGui::RenderCheckMark(ImVec2 pos, ImU32 col, float sz)
 {
     ImGuiContext& g = *GImGui;

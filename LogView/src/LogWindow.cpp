@@ -361,7 +361,7 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 		
 		if (_openedFiles[tabId]->LineSearchTag[i])
 		{
-			ImGui::ArrowButton("Right", ImGuiDir_Right);
+			ImGui::MagGlassButton("Searched");
 			if (ImGui::IsItemHovered())
 			{
 				AddToolTip("Search Result");
@@ -378,6 +378,13 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 			int tagIndex = GetTagIndex(_openedFiles[tabId]->LineTags[i]);
 			if (tagIndex >= 0 && _activeTags[tagIndex]->IsActive())
 			{
+				ImGui::TagButton("Tagged");
+				if (ImGui::IsItemHovered())
+				{
+					AddToolTip("Tagged");
+				}
+
+				ImGui::SameLine();
 				ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[tagIndex]->GetBgColor());
 				ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[tagIndex]->GetTextColor());
 				ImGui::SelectableTextUnformattedBG(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
@@ -443,7 +450,7 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 			copyMenuActive = false;
 			ImGui::CloseCurrentPopup();
 		}
-		ImGui::Button("Copy Selected Lines");
+		ImGui::CopyButton("Copy Selected Lines");
 		
 		if (ImGui::IsItemHovered())
 		{
@@ -455,6 +462,9 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 				
 			}
 		}
+
+		ImGui::SameLine();
+		ImGui::Text("Copy Selected Lines");
 		
 		ImGui::EndPopup();
 	}
@@ -504,7 +514,7 @@ void LogWindow::DrawTaggedLogs(float width, int tabId)
 				}
 
 				ImGui::SameLine();
-				ImGui::ArrowButton("Copy Line", ImGuiDir_Down);
+				ImGui::CopyButton("Copy Line");
 				if (ImGui::IsItemHovered())
 				{
 					std::string str("Copy Line ");

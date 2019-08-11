@@ -774,11 +774,122 @@ bool ImGui::ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiBu
     return pressed;
 }
 
+bool ImGui::MagGlassButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags flags)
+{
+	ImGuiWindow* window = GetCurrentWindow();
+	if (window->SkipItems)
+		return false;
+
+	ImGuiContext& g = *GImGui;
+	const ImGuiID id = window->GetID(str_id);
+	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+	const float default_size = GetFrameHeight();
+	ItemSize(size, (size.y >= default_size) ? g.Style.FramePadding.y : 0.0f);
+	if (!ItemAdd(bb, id))
+		return false;
+
+	if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+		flags |= ImGuiButtonFlags_Repeat;
+
+	bool hovered, held;
+	bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+
+	// Render
+	const ImU32 bg_col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+	const ImU32 text_col = GetColorU32(ImGuiCol_Text);
+	RenderNavHighlight(bb, id);
+	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
+	RenderMagGlass(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (size.x - g.FontSize) * 0.5f), ImMax(0.0f, (size.y - g.FontSize) * 0.5f)), text_col);
+
+	return pressed;
+}
+
+bool ImGui::CopyButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags flags)
+{
+	ImGuiWindow* window = GetCurrentWindow();
+	if (window->SkipItems)
+		return false;
+
+	ImGuiContext& g = *GImGui;
+	const ImGuiID id = window->GetID(str_id);
+	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+	const float default_size = GetFrameHeight();
+	ItemSize(size, (size.y >= default_size) ? g.Style.FramePadding.y : 0.0f);
+	if (!ItemAdd(bb, id))
+		return false;
+
+	if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+		flags |= ImGuiButtonFlags_Repeat;
+
+	bool hovered, held;
+	bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+
+	// Render
+	const ImU32 bg_col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+	const ImU32 text_col = GetColorU32(ImGuiCol_Text);
+	RenderNavHighlight(bb, id);
+	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
+	ImU32 bgCopy = ColorConvertFloat4ToU32(ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+	RenderCopyIcon(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (size.x - g.FontSize) * 0.5f), ImMax(0.0f, (size.y - g.FontSize) * 0.5f)), text_col, bgCopy);
+
+	return pressed;
+}
+
+bool ImGui::TagButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags flags)
+{
+	ImGuiWindow* window = GetCurrentWindow();
+	if (window->SkipItems)
+		return false;
+
+	ImGuiContext& g = *GImGui;
+	const ImGuiID id = window->GetID(str_id);
+	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+	const float default_size = GetFrameHeight();
+	ItemSize(size, (size.y >= default_size) ? g.Style.FramePadding.y : 0.0f);
+	if (!ItemAdd(bb, id))
+		return false;
+
+	if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+		flags |= ImGuiButtonFlags_Repeat;
+
+	bool hovered, held;
+	bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+
+	// Render
+	const ImU32 bg_col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+	const ImU32 text_col = GetColorU32(ImGuiCol_Text);
+	RenderNavHighlight(bb, id);
+	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
+	RenderTagIcon(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (size.x - g.FontSize) * 0.5f), ImMax(0.0f, (size.y - g.FontSize) * 0.5f)), text_col, bg_col);
+
+	return pressed;
+}
+
 bool ImGui::ArrowButton(const char* str_id, ImGuiDir dir)
 {
     float sz = GetFrameHeight();
     return ArrowButtonEx(str_id, dir, ImVec2(sz, sz), 0);
 }
+
+bool ImGui::MagGlassButton(const char* str_id)
+{
+	float sz = GetFrameHeight();
+	return MagGlassButtonEx(str_id, ImVec2(sz, sz),0);
+}
+
+bool ImGui::CopyButton(const char* str_id)
+{
+	float sz = GetFrameHeight();
+	return CopyButtonEx(str_id, ImVec2(sz, sz), 0);
+	
+}
+
+bool ImGui::TagButton(const char* str_id)
+{
+	float sz = GetFrameHeight();
+	return TagButtonEx(str_id, ImVec2(sz, sz), 0);
+}
+
 
 // Button to close a window
 bool ImGui::CloseButton(ImGuiID id, const ImVec2& pos)//, float size)
