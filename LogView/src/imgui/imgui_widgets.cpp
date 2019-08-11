@@ -212,24 +212,35 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags,
             }
             pos.y += lines_skipped * line_height;
         }
-        text_size.y = (pos - text_pos).y;
-		ImRect bb(text_pos, text_pos + text_size);
-		ItemSize(text_size);
-		ItemAdd(bb, 0);
 
 		if ((flags & ImGuiTextFlags_BG) > 0)
 		{
 			ImU32 xcol = GetColorU32(ImGuiCol_TextBG);
 			ImVec2 textbg_size(1920, text_size.y);
-			ImRect bb_bg(text_pos, text_pos+ textbg_size);
-			RenderFrame(bb_bg.Min, bb_bg.Max, xcol, true, 0);
+			
+			ImRect bb(text_pos, text_pos+ textbg_size);
+			RenderFrame(bb.Min, bb.Max, xcol, true, 0);
+			ItemSize(textbg_size);
+			ItemAdd(bb, 0);
 		}
+		else
+		{
+			text_size.y = (pos - text_pos).y;
+			ImRect bb(text_pos, text_pos + text_size);
+			ItemSize(text_size);
+			ItemAdd(bb, 0);
+		}
+
+
     }
     else
     {
         const float wrap_width = wrap_enabled ? CalcWrapWidthForPos(window->DC.CursorPos, wrap_pos_x) : 0.0f;
-        const ImVec2 text_size = CalcTextSize(text_begin, text_end, false, wrap_width);
-
+        ImVec2 text_size = CalcTextSize(text_begin, text_end, false, wrap_width);
+		if (flags & ImGuiTextFlags_BG)
+		{
+			if (text_size.x < 1920) text_size.x = 1920;
+		}
         ImRect bb(text_pos, text_pos + text_size);
         ItemSize(text_size);
         if (!ItemAdd(bb, 0))
@@ -259,18 +270,13 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags,
 			else if ((flags & ImGuiTextFlags_BG) > 0)
 			{
 				ImU32 xcol = GetColorU32(ImGuiCol_TextBG);
-				ImVec2 textbg_size(1920, text_size.y);
-				ImRect bb_bg(text_pos, text_pos + textbg_size);
-				RenderFrame(bb_bg.Min, bb_bg.Max, xcol, true, 0);
+				RenderFrame(bb.Min, bb.Max, xcol, true, 0);
 			}
 		}
 		else if ((flags & ImGuiTextFlags_BG) > 0)
 		{
 			ImU32 xcol = GetColorU32(ImGuiCol_TextBG);
-
-			ImVec2 textbg_size(1920, text_size.y);
-			ImRect bb_bg(text_pos, text_pos + textbg_size);
-			RenderFrame(bb_bg.Min, bb_bg.Max, xcol, true, 0);
+			RenderFrame(bb.Min, bb.Max, xcol, true, 0);
 		}
 
         RenderTextWrapped(bb.Min, text_begin, text_end, wrap_width);

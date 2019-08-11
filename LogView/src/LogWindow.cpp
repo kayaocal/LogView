@@ -400,13 +400,13 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 			}
 			else
 			{
-				ImGui::SelectableTextUnformatted(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
+				ImGui::SelectableTextUnformattedBG(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
 			}
 
 		}
 		else
 		{
-			ImGui::SelectableTextUnformatted(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
+			ImGui::SelectableTextUnformattedBG(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
 		}
 
 	}
