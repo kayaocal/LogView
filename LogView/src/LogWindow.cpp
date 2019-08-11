@@ -64,46 +64,19 @@ void LogWindow::Render(float width, float height)
 	ImGui::Begin("Main", &p_open, window_flags);
 	ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
 
+	if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(KEY_CODE_O))
+	{
+		OpenFile();
+	}
+
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::BeginMenu("Menu"))
 		{
-			if (ImGui::MenuItem("Open", "Ctrl+O")) 
+			if (ImGui::MenuItem("Open", "Ctrl+O"))
 			{
 				std::cout << "Open menu button clicked -- " << std::endl;
-				ZeroMemory(&_openFileName, sizeof(OPENFILENAMEW));
-				_openFileName.lStructSize = sizeof(_openFileName);
-				_openFileName.nFilterIndex = 1;
-				_openFileName.nMaxFile = MAX_FILE_NAME;
-				_openFileName.nMaxFileTitle = MAX_FILE_TITLE;
-				_openFileName.lpstrFile = _fileNameBuffer;
-				_openFileName.lpstrFileTitle = _fileTitleBuffer;
-				_openFileName.lpstrFile[0] = '\0';
-				_openFileName.lpstrFileTitle[0] = '\0';
-				_openFileName.lpstrTitle = L"Select a File";
-				_openFileName.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-				_openFileName.lpstrFilter = L".Text Files\0*.txt";
-				if (GetOpenFileNameW(&_openFileName))
-				{
-					std::wcout << "Can open requested file : " << _openFileName.lpstrFile << std::endl;
-					if (CanOpenSelectedFile(_openFileName.lpstrFile))
-					{
-						std::cout << "-0-"<<std::endl;
-						std::wcout << "Can open requested file title : " << _openFileName.lpstrFileTitle << std::endl;
-						LogView::LogFile* file = new LogView::LogFile(_openFileName.lpstrFile, _openFileName.lpstrFileTitle);
-						_openedFiles.push_back(file);
-						
-					}
-					else
-					{
-						std::wcout << "Cannot open requested file : " << _openFileName.lpstrFile << std::endl;
-					}
-					
-				}
-				else
-				{
-					std::cout << "File open request failed : " << CommDlgExtendedError() << std::endl;
-				}
+				OpenFile();
 			}
 
 			if (ImGui::MenuItem("Quit", "Alt+F4"))
@@ -197,41 +170,48 @@ void LogWindow::Render(float width, float height)
 					AddToolTip("Shortcut: Ctrl + F");
 				
 					ImGui::SameLine();
-					if (ImGui::ArrowButton("LeftBtn", ImGuiDir_Left))
-					{
-						if (_stricmp(_searchTag->GetTag(), _searchData) != 0)
-						{
-							_searchTag->SetTag(searchBuff);
-							_searchTag->SetIsActive(strlen(searchBuff) > 3);
-						}
+					ImGui::ArrowButton("LeftBtn", ImGuiDir_Left);
 
-						if (_searchTag->IsActive())
+					if (ImGui::IsItemHovered() || (ImGui::IsKeyPressed(KEY_CODE_F3) && ImGui::GetIO().KeyShift))
+					{
+						AddToolTip("Previos Search \n Shortcut: Shift + F3");
+						if (ImGui::IsMouseClicked(0) || (ImGui::IsKeyPressed(KEY_CODE_F3) && ImGui::GetIO().KeyShift))
 						{
-							int lineNumber = GetPrevSearchLineNumber(n);
-							GoToLine(n, 400, lineNumber);
+							if (_stricmp(_searchTag->GetTag(), _searchData) != 0)
+							{
+								_searchTag->SetTag(searchBuff);
+								_searchTag->SetIsActive(strlen(searchBuff) > 3);
+							}
+
+							if (_searchTag->IsActive())
+							{
+								int lineNumber = GetPrevSearchLineNumber(n);
+								GoToLine(n, 400, lineNumber);
+							}
 						}
 					}
-					AddToolTip("Previos Search \n Shortcut: Shift + F3");
 					
 					ImGui::SameLine();
-					if (ImGui::ArrowButton("RightBtn", ImGuiDir_Right))
+					ImGui::ArrowButton("RightBtn", ImGuiDir_Right);
+					if (ImGui::IsItemHovered() || ImGui::IsKeyPressed(KEY_CODE_F3))
 					{
-						if (_stricmp(_searchTag->GetTag(), _searchData) != 0)
+						AddToolTip("Next Search \n Shortcut: F3");
+						if (ImGui::IsMouseClicked(0) || ImGui::IsKeyPressed(KEY_CODE_F3))
 						{
-							_searchTag->SetTag(searchBuff);
-							_searchTag->SetIsActive(strlen(searchBuff) > 3);
-						}
+							if (_stricmp(_searchTag->GetTag(), _searchData) != 0)
+							{
+								_searchTag->SetTag(searchBuff);
+								_searchTag->SetIsActive(strlen(searchBuff) > 3);
+							}
 
-						if (_searchTag->IsActive())
-						{
-							int lineNumber = GetNextSearchLineNumber(n);
-							GoToLine(n, 400, lineNumber);
+							if (_searchTag->IsActive())
+							{
+								int lineNumber = GetNextSearchLineNumber(n);
+								GoToLine(n, 400, lineNumber);
+							}
 						}
-
-						
 					}
-					AddToolTip("Next Search \n Shortcut: F3");
-
+				
 					ImGui::SameLine();
 					
 					ImGui::SetNextItemWidth(150);
@@ -240,7 +220,6 @@ void LogWindow::Render(float width, float height)
 			
 					ImGui::Combo("Tags", &item_current, &(_comboboxActiveTagsStr[0]), (int)_activeTags.size());
 					
-				
 					ImGui::SameLine();
 					ImGui::ArrowButton("LeftBtn", ImGuiDir_Left);
 					if (ImGui::IsItemHovered())
@@ -378,7 +357,9 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 			int tagIndex = GetTagIndex(_openedFiles[tabId]->LineTags[i]);
 			if (tagIndex >= 0 && _activeTags[tagIndex]->IsActive())
 			{
+				ImGui::PushStyleColor(ImGuiCol_Button, _activeTags[tagIndex]->GetBgColor());
 				ImGui::TagButton("Tagged");
+				ImGui::PopStyleColor(1);
 				if (ImGui::IsItemHovered())
 				{
 					AddToolTip("Tagged");
@@ -946,6 +927,21 @@ void LogWindow::EditTag(bool isNew)
 		return;
 	}
 
+	if (ImGui::IsKeyPressed(KEY_CODE_ESC))
+	{
+		if (isNew)
+		{
+			delete (_itemToEdit);
+			_itemToEdit = nullptr;
+		}
+
+		_tagToEdit = -1;
+		ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+		return;
+	}
+	
+
 	TagItem* item = _itemToEdit;
 	ImVec4 col = item->GetBgColor();
 	static float col_bg[4] = { col.x, col.y, col.z, col.z };
@@ -1092,6 +1088,42 @@ void LogWindow::CopyClipboardDataToClipboard()
 	CloseClipboard();
 }
 
+void LogWindow::OpenFile()
+{
+	ZeroMemory(&_openFileName, sizeof(OPENFILENAMEW));
+	_openFileName.lStructSize = sizeof(_openFileName);
+	_openFileName.nFilterIndex = 1;
+	_openFileName.nMaxFile = MAX_FILE_NAME;
+	_openFileName.nMaxFileTitle = MAX_FILE_TITLE;
+	_openFileName.lpstrFile = _fileNameBuffer;
+	_openFileName.lpstrFileTitle = _fileTitleBuffer;
+	_openFileName.lpstrFile[0] = '\0';
+	_openFileName.lpstrFileTitle[0] = '\0';
+	_openFileName.lpstrTitle = L"Select a File";
+	_openFileName.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+	_openFileName.lpstrFilter = L".Text Files\0*.txt";
+	if (GetOpenFileNameW(&_openFileName))
+	{
+		std::wcout << "Can open requested file : " << _openFileName.lpstrFile << std::endl;
+		if (CanOpenSelectedFile(_openFileName.lpstrFile))
+		{
+			std::cout << "-0-" << std::endl;
+			std::wcout << "Can open requested file title : " << _openFileName.lpstrFileTitle << std::endl;
+			LogView::LogFile* file = new LogView::LogFile(_openFileName.lpstrFile, _openFileName.lpstrFileTitle);
+			_openedFiles.push_back(file);
+
+		}
+		else
+		{
+			std::wcout << "Cannot open requested file : " << _openFileName.lpstrFile << std::endl;
+		}
+
+	}
+	else
+	{
+		std::cout << "File open request failed : " << CommDlgExtendedError() << std::endl;
+	}
+}
 
 
 

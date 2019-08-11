@@ -7,6 +7,11 @@
 #define FONT_SIZE 15
 #define MAX_CLIPBOARD_COPY 1000
 
+#define KEY_CODE_O 79
+#define KEY_CODE_F3 114
+#define KEY_CODE_ESC 27
+
+
 static int HexToInt(char hex)
 {
 	if (hex >= 48 && hex < 58)

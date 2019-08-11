@@ -62,6 +62,8 @@ public:
 	LogWindow();
 	~LogWindow();
 
+	void OpenFile();
+
 	void SaveAppData();
 
 	void Render(float width, float height);

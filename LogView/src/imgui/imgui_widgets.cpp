@@ -873,21 +873,18 @@ bool ImGui::ArrowButton(const char* str_id, ImGuiDir dir)
 
 bool ImGui::MagGlassButton(const char* str_id)
 {
-	float sz = GetFrameHeight();
-	return MagGlassButtonEx(str_id, ImVec2(sz, sz),0);
+	return MagGlassButtonEx(str_id, ImVec2(15, 15),0);
 }
 
 bool ImGui::CopyButton(const char* str_id)
 {
-	float sz = GetFrameHeight();
-	return CopyButtonEx(str_id, ImVec2(sz, sz), 0);
+	return CopyButtonEx(str_id, ImVec2(15, 15), 0);
 	
 }
 
 bool ImGui::TagButton(const char* str_id)
 {
-	float sz = GetFrameHeight();
-	return TagButtonEx(str_id, ImVec2(sz, sz), 0);
+	return TagButtonEx(str_id, ImVec2(15, 15), 0);
 }
 
 
