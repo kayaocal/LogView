@@ -38,9 +38,11 @@ namespace LogView
 		bool _isDeleted;
 
 	public:
-		ImVector<int>  LineOffsets;
-		ImVector<int>  LineTags;
-		ImVector<int>  LineSearchTag;
+		int				SearchCount;
+		ImVector<int>	LineOffsets;
+		ImVector<int>	LineTags;
+		ImVector<int>	TagCount;
+		ImVector<int>	LineSearchTag;
 		ImVector<bool>  LineSelections;
 
 		bool* IsActive();
@@ -57,6 +59,7 @@ namespace LogView
 		void SetFileTitleC(char* chr);
 
 		void SerializeLogFile();
+		void CountTags(std::vector<TagItem*>* tags, TagItem * searchTag);
 		void ReadFile(std::vector<TagItem*>* tags = nullptr, TagItem* searchTag = nullptr);
 		int CheckFileStatus(bool shouldRead, std::vector<TagItem*>* tags = nullptr);
 		int GetLineCount();

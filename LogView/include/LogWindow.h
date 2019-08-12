@@ -19,14 +19,16 @@ private :
 	bool _shouldGoToLine;
 	wchar_t _fileNameBuffer[MAX_FILE_NAME];
 	wchar_t _fileTitleBuffer[MAX_FILE_TITLE];
-	char _comboboxActiveTagsStr[MAX_TAG_COUNT * MAX_TAG_LENGTH];
+	char _comboboxActiveTagsStr[MAX_TAG_COUNT * (MAX_TAG_LENGTH + 32)];
 	char _copyClipboardData[MAX_CLIPBOARD_COPY];
 	int _tagToEdit;
 	int _activeTabIndex;
 	int _currentLine;
 	float _pureLogScrollY;
 	char bufTagName[MAX_TAG_LENGTH];
-
+	float _tagColorBufferBg[4];
+	float _tagColorBufferText[4];
+	
 	std::vector<LogView::LogFile*> _openedFiles;
 	std::vector<TagItem*> _activeTags;
 
@@ -49,6 +51,7 @@ private :
 	void EditTag(bool isNew);
 	void OnTagsRefreshed();
 	void GoToLine(int file_index,int height, int lineNumber);
+	
 	void ReadSavedData();
 
 	int GetTagIndex(int tagID);
@@ -61,6 +64,7 @@ private :
 public:
 	LogWindow();
 	~LogWindow();
+	char tempString[256];
 
 	void OpenFile();
 

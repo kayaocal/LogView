@@ -46,6 +46,50 @@ void LogView::LogFile::SerializeLogFile()
 	std::cout << "ERR SerializeLogFile is NOT implemented" << std::endl;
 }
 
+void LogView::LogFile::CountTags(std::vector<TagItem*>* tags, TagItem* searchTag)
+{
+	std::cout << "CountTags" << std::endl;
+	SearchCount = 0;
+
+	if (searchTag != nullptr)
+	{
+		for (int i = 0; i < _lineCount; i++)
+		{
+			if (LineSearchTag[i] > 0)
+			{
+				SearchCount++;
+			}
+		}
+	}
+
+	if (tags == nullptr)
+	{
+		std::cout << "TAGS NULL" << std::endl;
+		TagCount.clear();
+		return;
+	}
+
+	for (int t = 0; t < tags->size(); t++)
+	{
+		TagCount.push_back(0);
+	}
+	std::cout << "line count : " << _lineCount << std::endl;
+	for (int i = 0; i < _lineCount; i++)
+	{
+		if (LineTags[i] > 0)
+		{
+			for (int x = 0; x < tags->size(); x++)
+			{
+				if (LineTags[i] == (*tags)[x]->GetTagID())
+				{
+					TagCount[x]++;
+					break;
+				}
+			}
+		}
+	}
+}
+
 void LogView::LogFile::ReadFile(std::vector<TagItem*>* tags, TagItem* searchTag)
 {
 	boost::filesystem::path p(_wFileName);
@@ -108,6 +152,8 @@ void LogView::LogFile::ReadFile(std::vector<TagItem*>* tags, TagItem* searchTag)
 		LineSelections.push_back(false);
 	}
 	stream.close();
+
+	CountTags(tags, searchTag);
 
 }
 
@@ -180,6 +226,8 @@ LogView::LogFile::LogFile(wchar_t * file_name, wchar_t * file_title)
 
 
 }
+
+
 
 LogView::LogFile::~LogFile()
 {

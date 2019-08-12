@@ -65,3 +65,11 @@ static void HexToColor(char* hexColor, float* red, float* green, float* blue)
 	*green = ((float)(HexToInt(hexColor[3]) + (HexToInt(hexColor[2]) * 16))) / 255;
 	*blue  = ((float)(HexToInt(hexColor[5]) + (HexToInt(hexColor[4]) * 16))) / 255;
 }
+
+static void SetColorArray(float* arr, float red, float green, float blue, float alpha)
+{
+	arr[0] = red;
+	arr[1] = green;
+	arr[2] = blue;
+	arr[3] = alpha;
+}
