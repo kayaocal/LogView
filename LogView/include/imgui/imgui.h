@@ -382,9 +382,9 @@ namespace ImGui
     IMGUI_API ImGuiID       GetID(const void* ptr_id);
 
     // Widgets: Text
+	IMGUI_API void			SelectableTextUnformattedBG(const char * text, const char * text_end, bool* selected);
     IMGUI_API void          TextUnformatted(const char* text, const char* text_end = NULL);                // raw text without formatting. Roughly equivalent to Text("%s", text) but: A) doesn't require null terminated string if 'text_end' is specified, B) it's faster, no memory copy is done, no buffer size limits, recommended for long chunks of text.
 	IMGUI_API void			SelectableTextUnformatted(const char * text, const char * text_end, bool* selected);
-	IMGUI_API void			SelectableTextUnformattedBG(const char * text, const char * text_end, bool* selected);
     IMGUI_API void          TextUnformattedWBg(const char* text, const char* text_end = NULL);                // raw text without formatting. Roughly equivalent to Text("%s", text) but: A) doesn't require null terminated string if 'text_end' is specified, B) it's faster, no memory copy is done, no buffer size limits, recommended for long chunks of text.
     IMGUI_API void          Text(const char* fmt, ...)                                      IM_FMTARGS(1); // simple formatted text
     IMGUI_API void          TextV(const char* fmt, va_list args)                            IM_FMTLIST(1);
@@ -405,7 +405,10 @@ namespace ImGui
     IMGUI_API bool          SmallButton(const char* label);                                 // button with FramePadding=(0,0) to easily embed within text
     IMGUI_API bool          InvisibleButton(const char* str_id, const ImVec2& size);        // button behavior without the visuals, frequently useful to build custom behaviors using the public api (along with IsItemActive, IsItemHovered, etc.)
     IMGUI_API bool          ArrowButton(const char* str_id, ImGuiDir dir);                  // square button with an arrow shape
+	IMGUI_API bool			CopyTextButton(const char * str_id, ImVec2 size);
 	IMGUI_API bool			MagGlassButton(const char * str_id);
+	IMGUI_API bool			MagGlassTextButton(const char * str_id, ImVec2 size);
+	IMGUI_API bool			TagTextButton(const char * str_id, ImVec2 size);
 	IMGUI_API bool			CopyButton(const char * str_id);
 	IMGUI_API bool			TagButton(const char * str_id);
     IMGUI_API void          Image(ImTextureID user_texture_id, const ImVec2& size, const ImVec2& uv0 = ImVec2(0,0), const ImVec2& uv1 = ImVec2(1,1), const ImVec4& tint_col = ImVec4(1,1,1,1), const ImVec4& border_col = ImVec4(0,0,0,0));
@@ -416,6 +419,7 @@ namespace ImGui
     IMGUI_API bool          RadioButton(const char* label, int* v, int v_button);           // shortcut to handle the above pattern when value is an integer
     IMGUI_API void          ProgressBar(float fraction, const ImVec2& size_arg = ImVec2(-1,0), const char* overlay = NULL);
     IMGUI_API void          Bullet();                                                       // draw a small circle and keep the cursor on the same line. advance cursor x position by GetTreeNodeToLabelSpacing(), same distance that TreeNode() uses
+	IMGUI_API ImVec2		GetTextPos();
 
     // Widgets: Combo Box
     // - The new BeginCombo()/EndCombo() api allows you to manage your contents and selection state however you want it, by creating e.g. Selectable() items.

@@ -127,6 +127,13 @@ static ImVec2           InputTextCalcTextSizeW(const ImWchar* text_begin, const 
 // - BulletTextV()
 //-------------------------------------------------------------------------
 
+ImVec2 ImGui::GetTextPos()
+{
+	ImGuiWindow* window = GetCurrentWindow();
+	ImVec2 text_pos(window->DC.CursorPos.x, window->DC.CursorPos.y + window->DC.CurrLineTextBaseOffset);
+	return text_pos;
+}
+
 void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags, bool* selected)
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -254,18 +261,10 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags,
 			button_flags |= ImGuiButtonFlags_PressedOnClickRelease;
 
 
-			bool hovered, held;
-			bool pressed = ButtonBehavior(bb, id, &hovered, &held, button_flags);
-			if (pressed)
-			{
-				*selected = !(*selected);
-			}
-
-			if (*selected)
+			if (*selected )
 			{
 				ImU32 xcol = GetColorU32(ImGuiCol_ButtonActive);
 				RenderFrame(bb.Min, bb.Max, xcol, true, 0);
-				
 			}
 			else if ((flags & ImGuiTextFlags_BG) > 0)
 			{
@@ -298,8 +297,10 @@ void ImGui::SelectableTextUnformatted(const char* text, const char* text_end, bo
 {
 	TextEx(text, text_end, ImGuiTextFlags_NoWidthForLargeClippedText | ImGuiTextFlags_Selectable, selected);
 }
+
 void ImGui::SelectableTextUnformattedBG(const char* text, const char* text_end, bool* selected)
 {
+	bool isSelectedChanged = *selected;
 	TextEx(text, text_end, ImGuiTextFlags_Selectable | ImGuiTextFlags_BG, selected);
 }
 
@@ -750,6 +751,40 @@ bool ImGui::InvisibleButton(const char* str_id, const ImVec2& size_arg)
     return pressed;
 }
 
+bool ImGui::ArrowTextButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiButtonFlags flags)
+{
+	ImGuiWindow* window = GetCurrentWindow();
+	if (window->SkipItems)
+		return false;
+
+	ImGuiContext& g = *GImGui;
+	const ImGuiID id = window->GetID(str_id);
+	const ImVec2 str_size = CalcTextSize(str_id, NULL, true);
+	const ImGuiStyle& style = g.Style;
+
+	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+	const float default_size = GetFrameHeight();
+	ItemSize(size, (size.y >= default_size) ? g.Style.FramePadding.y : 0.0f);
+	if (!ItemAdd(bb, id))
+		return false;
+
+	if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+		flags |= ImGuiButtonFlags_Repeat;
+
+	bool hovered, held;
+	bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+
+	// Render
+	const ImU32 bg_col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+	const ImU32 text_col = GetColorU32(ImGuiCol_Text);
+	RenderNavHighlight(bb, id);
+	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
+	RenderArrow(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), text_col, dir);
+	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
+
+	return pressed;
+}
+
 bool ImGui::ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiButtonFlags flags)
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -780,6 +815,40 @@ bool ImGui::ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiBu
     return pressed;
 }
 
+bool ImGui::MagGlassTextButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags flags)
+{
+	ImGuiWindow* window = GetCurrentWindow();
+	if (window->SkipItems)
+		return false;
+
+	ImGuiContext& g = *GImGui;
+	const ImGuiID id = window->GetID(str_id);
+	const ImVec2 str_size = CalcTextSize(str_id, NULL, true);
+	const ImGuiStyle& style = g.Style;
+
+	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+	const float default_size = GetFrameHeight();
+	ItemSize(size, (size.y >= default_size) ? g.Style.FramePadding.y : 0.0f);
+	if (!ItemAdd(bb, id))
+		return false;
+
+	if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+		flags |= ImGuiButtonFlags_Repeat;
+
+	bool hovered, held;
+	bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+
+	// Render
+	const ImU32 bg_col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+	const ImU32 text_col = GetColorU32(ImGuiCol_Text);
+	RenderNavHighlight(bb, id);
+	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
+	RenderMagGlass(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), text_col);
+	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
+
+	return pressed;
+}
+
 bool ImGui::MagGlassButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags flags)
 {
 	ImGuiWindow* window = GetCurrentWindow();
@@ -806,6 +875,41 @@ bool ImGui::MagGlassButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags f
 	RenderNavHighlight(bb, id);
 	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
 	RenderMagGlass(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (size.x - g.FontSize) * 0.5f), ImMax(0.0f, (size.y - g.FontSize) * 0.5f)), text_col);
+
+	return pressed;
+}
+
+bool ImGui::CopyTextButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags flags)
+{
+	ImGuiWindow* window = GetCurrentWindow();
+	if (window->SkipItems)
+		return false;
+
+	ImGuiContext& g = *GImGui;
+	const ImGuiID id = window->GetID(str_id);
+	const ImVec2 str_size = CalcTextSize(str_id, NULL, true);
+	const ImGuiStyle& style = g.Style;
+
+	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+	const float default_size = GetFrameHeight();
+	ItemSize(size, (size.y >= default_size) ? g.Style.FramePadding.y : 0.0f);
+	if (!ItemAdd(bb, id))
+		return false;
+
+	if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+		flags |= ImGuiButtonFlags_Repeat;
+
+	bool hovered, held;
+	bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+
+	// Render
+	const ImU32 bg_col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+	const ImU32 text_col = GetColorU32(ImGuiCol_Text);
+	RenderNavHighlight(bb, id);
+	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
+	ImU32 bgCopy = ColorConvertFloat4ToU32(ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+	RenderCopyIcon(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), text_col, bgCopy);
+	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
 
 	return pressed;
 }
@@ -841,6 +945,39 @@ bool ImGui::CopyButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags flags
 	return pressed;
 }
 
+bool ImGui::TagTextButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags flags)
+{
+	ImGuiWindow* window = GetCurrentWindow();
+	if (window->SkipItems)
+		return false;
+
+	ImGuiContext& g = *GImGui;
+	const ImGuiID id = window->GetID(str_id);
+	const ImVec2 str_size = CalcTextSize(str_id, NULL, true);
+	const ImGuiStyle& style = g.Style;
+
+	const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
+	const float default_size = GetFrameHeight();
+	ItemSize(size, (size.y >= default_size) ? g.Style.FramePadding.y : 0.0f);
+	if (!ItemAdd(bb, id))
+		return false;
+
+	if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+		flags |= ImGuiButtonFlags_Repeat;
+
+	bool hovered, held;
+	bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
+
+	// Render
+	const ImU32 bg_col = GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
+	const ImU32 text_col = GetColorU32(ImGuiCol_Text);
+	RenderNavHighlight(bb, id);
+	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
+	RenderTagIcon(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), text_col, bg_col);
+	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
+
+	return pressed;
+}
 bool ImGui::TagButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags flags)
 {
 	ImGuiWindow* window = GetCurrentWindow();
@@ -871,10 +1008,35 @@ bool ImGui::TagButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags flags)
 	return pressed;
 }
 
+bool ImGui::ArrowTextButton(const char* str_id, ImGuiDir dir, ImVec2 size)
+{
+	return ArrowTextButtonEx(str_id, dir, size, 0);
+}
+
+bool ImGui::ArrowButton(const char* str_id, ImGuiDir dir, float size)
+{
+	return ArrowButtonEx(str_id, dir, ImVec2(size, size), 0);
+}
+
 bool ImGui::ArrowButton(const char* str_id, ImGuiDir dir)
 {
     float sz = GetFrameHeight();
     return ArrowButtonEx(str_id, dir, ImVec2(sz, sz), 0);
+}
+
+bool ImGui::MagGlassTextButton(const char* str_id, ImVec2 size)
+{
+	return MagGlassTextButtonEx(str_id, size, 0);
+}
+
+bool ImGui::TagTextButton(const char* str_id, ImVec2 size)
+{
+	return TagTextButtonEx(str_id, size, 0);
+}
+
+bool ImGui::CopyTextButton(const char* str_id, ImVec2 size)
+{
+	return CopyTextButtonEx(str_id, size, 0);
 }
 
 bool ImGui::MagGlassButton(const char* str_id)

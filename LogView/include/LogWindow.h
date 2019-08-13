@@ -1,5 +1,6 @@
 #pragma once
 #include <imgui.h>
+#include "imgui/imgui_internal.h"
 #include <vector> 
 #include <iostream>
 #include <Windows.h>
@@ -15,12 +16,14 @@ private :
 	ImGuiWindowFlags window_flags;
 	OPENFILENAMEW _openFileName;
 	
+	bool selectionStarted = false;
 	bool p_open;
 	bool _shouldGoToLine;
 	wchar_t _fileNameBuffer[MAX_FILE_NAME];
 	wchar_t _fileTitleBuffer[MAX_FILE_TITLE];
 	char _comboboxActiveTagsStr[MAX_TAG_COUNT * (MAX_TAG_LENGTH + 32)];
 	char _copyClipboardData[MAX_CLIPBOARD_COPY];
+	char searchBuff[MAX_TAG_LENGTH];
 	int _tagToEdit;
 	int _activeTabIndex;
 	int _currentLine;
@@ -60,6 +63,9 @@ private :
 	int GetPrevTagLineNumber(int file_index, int tagIndex);
 	int GetNextSearchLineNumber(int file_index);
 	int GetPrevSearchLineNumber(int file_index);
+	void ClearSelectedLines();
+	void ClearOtherSelectedLines(int selected);
+	void CheckForIllegalSelectedLine();
 
 public:
 	LogWindow();
@@ -67,6 +73,8 @@ public:
 	char tempString[256];
 
 	void OpenFile();
+
+	
 
 	void SaveAppData();
 

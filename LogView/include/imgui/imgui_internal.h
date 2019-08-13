@@ -1620,9 +1620,15 @@ namespace ImGui
     IMGUI_API bool          CloseButton(ImGuiID id, const ImVec2& pos);
     IMGUI_API bool          CollapseButton(ImGuiID id, const ImVec2& pos);
     IMGUI_API bool          ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size_arg, ImGuiButtonFlags flags);
+    IMGUI_API bool          ArrowTextButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size_arg, ImGuiButtonFlags flags);
+	IMGUI_API bool			MagGlassTextButtonEx(const char * str_id, ImVec2 size, ImGuiButtonFlags flags);
 	IMGUI_API bool			MagGlassButtonEx(const char * str_id, ImVec2 size, ImGuiButtonFlags flags);
+	IMGUI_API bool			CopyTextButtonEx(const char * str_id, ImVec2 size, ImGuiButtonFlags flags);
 	IMGUI_API bool			CopyButtonEx(const char * str_id, ImVec2 size, ImGuiButtonFlags flags);
+	IMGUI_API bool			TagTextButtonEx(const char * str_id, ImVec2 size, ImGuiButtonFlags flags);
 	IMGUI_API bool			TagButtonEx(const char * str_id, ImVec2 size, ImGuiButtonFlags flags);
+	IMGUI_API bool			ArrowTextButton(const char * str_id, ImGuiDir dir, ImVec2 size);
+	IMGUI_API bool			ArrowButton(const char * str_id, ImGuiDir dir, float size);
     IMGUI_API void          Scrollbar(ImGuiAxis axis);
     IMGUI_API bool          ScrollbarEx(const ImRect& bb, ImGuiID id, ImGuiAxis axis, float* p_scroll_v, float avail_v, float contents_v, ImDrawCornerFlags rounding_corners);
     IMGUI_API ImGuiID       GetScrollbarID(ImGuiWindow* window, ImGuiAxis axis);

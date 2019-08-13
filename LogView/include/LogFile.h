@@ -44,6 +44,7 @@ namespace LogView
 		ImVector<int>	TagCount;
 		ImVector<int>	LineSearchTag;
 		ImVector<bool>  LineSelections;
+		ImVector<bool>  LineAvaibleToSelect;
 
 		bool* IsActive();
 		bool IsUpdated();

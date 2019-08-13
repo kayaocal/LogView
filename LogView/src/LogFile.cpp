@@ -150,6 +150,7 @@ void LogView::LogFile::ReadFile(std::vector<TagItem*>* tags, TagItem* searchTag)
 	while (LineSelections.size() < _lineCount)
 	{
 		LineSelections.push_back(false);
+		LineAvaibleToSelect.push_back(true);
 	}
 	stream.close();
 
