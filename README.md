@@ -7,15 +7,20 @@ This application is for tracking real-time updated log files easly, such as game
 ![alt text](https://github.com/kayaocal/LogView/blob/master/ss.png?raw=true)
 
 # Project Status
- - [x] Adding and Editing Tags
+- [x] Adding and Editing Tags
 - [x] Search 
 - [x] Go to Lines
+- [x] Follow Tail
+- [x] Multi line Select and copy
 - [ ] All Shortcuts
-- [ ] Settings
-- [ ] Multi line Select and copy
+- [ ] Encoding
+- [ ] New Menus (Options, About, Edit, Recent Files, Close Tab, Close All Tabs, ...)
+- [ ] Cmake integration
+- [ ] Cross Platform support
+- [ ] Decrease dependencies
 
 # Dependencies
-  - Project is using specialized version of Dear Imgui 1.72.
+  - Project is using specialized version of Dear Imgui 1.72. 
   - Boost FileSystem
   - YamlCpp library for saving app settings - https://github.com/jbeder/yaml-cpp/
 
