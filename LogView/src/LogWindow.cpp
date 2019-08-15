@@ -1,7 +1,7 @@
 #include "LogWindow.h"
 #include <iostream>
 
-LogWindow::LogWindow()
+LogWindow::LogWindow(AppSettings* app)
 {
 	LogWindow::window_flags = 0;
 	window_flags |= ImGuiWindowFlags_NoTitleBar;
@@ -14,6 +14,7 @@ LogWindow::LogWindow()
 	_tagToEdit = -1;
 	p_open = true;
 
+	_appSettings = app;
 	_searchTag = new TagItem(false, ImVec4(0.0f, 0.0f, 0.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), 0);
 	_appDataPath = boost::filesystem::temp_directory_path();
 	
@@ -58,6 +59,8 @@ LogWindow::~LogWindow()
 
 void LogWindow::Render(float width, float height)
 {
+	float pureLogWindowHeight = height * 0.45f;
+	float taggedLogWindowHeight = height * 0.3f;
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_FirstUseEver);
 
@@ -82,6 +85,38 @@ void LogWindow::Render(float width, float height)
 			if (ImGui::MenuItem("Quit", "Alt+F4"))
 			{
 				//TODO Quit should be supported
+			}
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Edit"))
+		{
+			if (ImGui::MenuItem("Clear Selections", "", false, false))
+			{
+			}
+
+			if (ImGui::MenuItem("Copy Selections", "", false, false))
+			{
+			}
+
+			if (ImGui::MenuItem("Search Selections", "", false, false))
+			{
+			}
+
+			if (ImGui::MenuItem("Add Selections as tag", "", false, false))
+			{
+			}
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Preferences"))
+		{
+			if (ImGui::MenuItem("Options", "", true))
+			{
+				std::cout << "Open menu button clicked -- " << std::endl;
+		
 			}
 
 			ImGui::EndMenu();
@@ -125,7 +160,16 @@ void LogWindow::Render(float width, float height)
 					_openedFiles[n]->CheckFileStatus(true, &_activeTags);
 					
 					if (ImGui::Button("Change Tab Name"))
+					{
 						ImGui::OpenPopup("ChangeTabNamePopup");
+						ImFont* font = GImGui->IO.Fonts->Fonts[1];
+						ImGui::PushID((void*)font);
+
+						GImGui->IO.FontDefault = font;
+						ImGui::PopID();
+						
+					
+					}
 
 					AddToolTip("Click here to change tab's name");
 					if (ImGui::BeginPopupContextItem("ChangeTabNamePopup"))
@@ -148,12 +192,14 @@ void LogWindow::Render(float width, float height)
 					ImGui::SameLine();
 					ImGui::Checkbox("Follow Tail", _openedFiles[n]->IsFollowTailsActive());
 					ImGui::SameLine();
-					ImGui::SetNextItemWidth(300);
+					ImGui::SetNextItemWidth(250);
 
 					if (ImGui::InputText("Search", searchBuff, MAX_TAG_LENGTH, ImGuiInputTextFlags_EnterReturnsTrue))
 					{
 						_searchTag->SetTag(searchBuff);
 						_searchTag->SetIsActive(strlen(searchBuff) >= 3);
+						_searchTag->SetBGColorHex(_appSettings->SearchBgColor);
+						_searchTag->SetTextColorHex(_appSettings->SearchTextColor);
 					}
 
 					AddToolTip("Shortcut: Ctrl + F");
@@ -170,12 +216,14 @@ void LogWindow::Render(float width, float height)
 							{
 								_searchTag->SetTag(searchBuff);
 								_searchTag->SetIsActive(strlen(searchBuff) > 3);
+								_searchTag->SetBGColorHex(_appSettings->SearchBgColor);
+								_searchTag->SetTextColorHex(_appSettings->SearchTextColor);
 							}
 
 							if (_searchTag->IsActive())
 							{
 								int lineNumber = GetPrevSearchLineNumber(n);
-								GoToLine(n, 400, lineNumber);
+								GoToLine(n, pureLogWindowHeight, lineNumber);
 							}
 						}
 					}
@@ -191,12 +239,14 @@ void LogWindow::Render(float width, float height)
 							{
 								_searchTag->SetTag(searchBuff);
 								_searchTag->SetIsActive(strlen(searchBuff) > 3);
+								_searchTag->SetBGColorHex(_appSettings->SearchBgColor);
+								_searchTag->SetTextColorHex(_appSettings->SearchTextColor);
 							}
 
 							if (_searchTag->IsActive())
 							{
 								int lineNumber = GetNextSearchLineNumber(n);
-								GoToLine(n, 400, lineNumber);
+								GoToLine(n, pureLogWindowHeight, lineNumber);
 							}
 						}
 					}
@@ -218,7 +268,7 @@ void LogWindow::Render(float width, float height)
 						{
 							std::cout << "Left button clicked" << std::endl;
 							int lineNumber = GetPrevTagLineNumber(n, item_current);
-							GoToLine(n, 400, lineNumber);
+							GoToLine(n, pureLogWindowHeight, lineNumber);
 							
 						}
 					}
@@ -233,7 +283,7 @@ void LogWindow::Render(float width, float height)
 						{
 							std::cout << "Right button clicked" << std::endl;
 							int lineNumber = GetNextTagLineNumber(n, item_current);
-							GoToLine(n, 400, lineNumber);
+							GoToLine(n, pureLogWindowHeight, lineNumber);
 							_shouldGoToLine = true;
 						}
 					}
@@ -251,11 +301,11 @@ void LogWindow::Render(float width, float height)
 					ImGui::Text(filesize);
 					
 					ImGui::Separator();
-					DrawPureLogs(width, n);
+					DrawPureLogs(width, height, n);
 					ImGui::Separator();
 					DrawTagWorks(width);
 					ImGui::Separator();
-					DrawTaggedLogs(width, n);
+					DrawTaggedLogs(width, height,  n);
 					ImGui::EndTabItem();
 				}			
 			}
@@ -312,11 +362,33 @@ void LogWindow::AddToolTip(const char * chr)
 	}
 }
 
-void LogWindow::DrawPureLogs(float width, int tabId)
+void LogWindow::DrawPureLogs(float width, float height, int tabId)
 {
-	ImGui::BeginChild("scrolling", ImVec2(width - 25, 400), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
+	int leftMargin = 25;
+	float taggedLogWindowHeight = height * 0.3f;
+	float pureLogWindowHeight = height * 0.4f;
+	if (_appSettings->ShowLineNumbers)
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(_appSettings->LineSpacingX, _appSettings->LineSpacingY)); // Tighten spacing
+		ImGui::BeginChild("lineswindow", ImVec2(40, pureLogWindowHeight -12), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize
+			| ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove );
+		
+		for (int i = 0; i < _openedFiles[tabId]->GetLineCount() ; i++)
+		{
+			GetNumber(tempStr, 4, i+1);
+			ImGui::TextUnformatted(tempStr, tempStr+4);
+		}
+		ImGui::SetScrollY(_pureLogScrollY * (ImGui::GetFontSize() + _appSettings->LineSpacingY) * _openedFiles[tabId]->GetLineCount());
+		ImGui::EndChild();
+		ImGui::SameLine();
+		leftMargin += 40;
+		ImGui::PopStyleVar();
+	}
 
+	ImGui::BeginChild("scrolling", ImVec2(width - leftMargin, pureLogWindowHeight), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
+	
+	
 	if (*_openedFiles[tabId]->IsFollowTailsActive())
 	{
 		if (ImGui::IsWindowHovered())
@@ -343,17 +415,16 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 	const char* buf_start = buf->begin();
 	const char* buf_end = buf->end();
 
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(_appSettings->LineSpacingX, _appSettings->LineSpacingY)); // Tighten spacing
 
 	for (int i = 0; i < lineCount; i++)
 	{
 		const char* line_start = buf_start + _openedFiles[tabId]->LineOffsets[i];
 		const char* line_end = (i + 1 < _openedFiles[tabId]->LineOffsets.Size) ? (buf_start + _openedFiles[tabId]->LineOffsets[i + 1] ) : buf_end;
 		ImGui::PushID(i);
-		static ImVec4 col;
 		bool shouldPaint = false;
 		int tagId = 0;
-
+		
 		ImVec2 text_size = ImGui::CalcTextSize(line_start, line_end, false, 0.0f);
 		if (text_size.x < 1920)
 		{
@@ -381,8 +452,6 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 		{
 			_openedFiles[tabId]->LineSelections[i] = !_openedFiles[tabId]->LineSelections[i];
 			_openedFiles[tabId]->LineAvaibleToSelect[i] = false;
-
-			
 		}
 		else if (!ImGui::IsMouseHoveringRect(bb.Min, bb.Max))
 		{
@@ -398,31 +467,38 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 			}
 
 			ImGui::SameLine();
+			ImGui::PushFont(FontMedium[_appSettings->FontSize]);
 			ImGui::PushStyleColor(ImGuiCol_TextBG, _searchTag->GetBgColor());
 			ImGui::PushStyleColor(ImGuiCol_Text, _searchTag->GetTextColor());
 			ImGui::SelectableTextUnformattedBG(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
 			ImGui::PopStyleColor(2);
-			
+			ImGui::PopFont();
 		}
 		else if (_openedFiles[tabId]->LineTags[i] > 0)
 		{
 			int tagIndex = GetTagIndex(_openedFiles[tabId]->LineTags[i]);
 			if (tagIndex >= 0 && _activeTags[tagIndex]->IsActive())
 			{
-				ImGui::PushStyleColor(ImGuiCol_Button, _activeTags[tagIndex]->GetBgColor());
-				ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[tagIndex]->GetTextColor());
-				ImGui::TagButton("Tagged");
-				ImGui::PopStyleColor(2);
-				if (ImGui::IsItemHovered())
+				if (_appSettings->ShowTagIconOnPureLogs)
 				{
-					AddToolTip("Tagged");
-				}
+					ImGui::PushStyleColor(ImGuiCol_Button, _activeTags[tagIndex]->GetBgColor());
+					ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[tagIndex]->GetTextColor());
+					ImGui::TagButton("Tagged");
+					ImGui::PopStyleColor(2);
+					if (ImGui::IsItemHovered())
+					{
+						AddToolTip("Tagged");
+					}
 
-				ImGui::SameLine();
+					ImGui::SameLine();
+
+				}
+				ImGui::PushFont(FontMedium[_appSettings->FontSize]);
 				ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[tagIndex]->GetBgColor());
 				ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[tagIndex]->GetTextColor());
 				ImGui::SelectableTextUnformattedBG(line_start, line_end, &(_openedFiles[tabId]->LineSelections[i]));
 				ImGui::PopStyleColor(2);
+				ImGui::PopFont();
 			}
 			else
 			{
@@ -442,7 +518,7 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 	}
 	else if(_shouldGoToLine == true)
 	{
-		ImGui::SetScrollY(_pureLogScrollY * 16 * _openedFiles[tabId]->GetLineCount());
+		ImGui::SetScrollY(_pureLogScrollY * (ImGui::GetFontSize() + _appSettings->LineSpacingY) * _openedFiles[tabId]->GetLineCount());
 		_shouldGoToLine = false;
 	}
 	
@@ -494,7 +570,9 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 				{
 					searchBuff[i] = _copyClipboardData[i];
 					_searchTag->SetTag(searchBuff);
-					_searchTag->SetIsActive(strlen(searchBuff) >= 3);
+					_searchTag->SetIsActive(strlen(searchBuff) > 2);
+					_searchTag->SetBGColorHex(_appSettings->SearchBgColor);
+					_searchTag->SetTextColorHex(_appSettings->SearchTextColor);
 				}
 			}
 		}
@@ -553,15 +631,19 @@ void LogWindow::DrawPureLogs(float width, int tabId)
 	}
 
 	ImGui::PopStyleVar();
+	_pureLogScrollY = ImGui::GetScrollY() / _openedFiles[tabId]->GetLineCount() / (ImGui::GetFontSize() + _appSettings->LineSpacingY);
 	ImGui::EndChild();
 	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::Spacing();
 }
 
-void LogWindow::DrawTaggedLogs(float width, int tabId)
+void LogWindow::DrawTaggedLogs(float width, float height, int tabId)
 {
-	ImGui::BeginChild("scrolling32", ImVec2(width - 25, 400), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+	float taggedLogWindowHeight = height * 0.3f;
+	float pureLogWindowHeight = height * 0.4f;
+
+	ImGui::BeginChild("scrolling32", ImVec2(width - 25, taggedLogWindowHeight), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
 
 	if (*_openedFiles[tabId]->IsFollowTailsActive())
@@ -590,7 +672,7 @@ void LogWindow::DrawTaggedLogs(float width, int tabId)
 	const char* buf_start = buf->begin();
 	const char* buf_end = buf->end();
 	
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 1)); // Tighten spacing
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(_appSettings->LineSpacingX, _appSettings->LineSpacingY)); // Tighten spacing
 
 	for (int i = 0; i < counter; i++)
 	{
@@ -602,7 +684,7 @@ void LogWindow::DrawTaggedLogs(float width, int tabId)
 			if (ImGui::IsItemHovered())
 			{
 				std::string str("Copy Line ");
-				str += std::to_string(i);
+				str += std::to_string(i + 1);
 				AddToolTip(str.c_str());
 				if (ImGui::IsMouseClicked(0))
 				{
@@ -617,21 +699,21 @@ void LogWindow::DrawTaggedLogs(float width, int tabId)
 			if (ImGui::IsItemHovered())
 			{
 				std::string str("Go To Line ");
-				str += std::to_string(i);
+				str += std::to_string(i + 1);
 				AddToolTip(str.c_str());
 
 				if (ImGui::IsMouseClicked(0))
 				{
-					GoToLine(tabId, 400, i);
+					GoToLine(tabId, pureLogWindowHeight, i);
 				}
 			}
-
 			ImGui::SameLine();
-
+			ImGui::PushFont(FontMedium[_appSettings->FontSize]);
 			ImGui::PushStyleColor(ImGuiCol_TextBG,_searchTag->GetBgColor());
 			ImGui::PushStyleColor(ImGuiCol_Text, _searchTag->GetTextColor());
 			ImGui::TextUnformattedWBg(line_start, line_end);
 			ImGui::PopStyleColor(2);
+			ImGui::PopFont();
 		}
 		else if (_openedFiles[tabId]->LineTags[i] > 0)
 		{
@@ -665,26 +747,30 @@ void LogWindow::DrawTaggedLogs(float width, int tabId)
 				if (ImGui::IsItemHovered())
 				{
 					std::string str("Go To Line ");
-					str += std::to_string(i);
+					str += std::to_string(i + 1);
 					AddToolTip(str.c_str());
 					if (ImGui::IsMouseClicked(0))
 					{
-						GoToLine(tabId, 400, i);
+						GoToLine(tabId, pureLogWindowHeight, i);
 					}
 				}
 
 				ImGui::SameLine();
-		
+				ImGui::PushFont(FontMedium[_appSettings->FontSize]);
+
 				ImGui::PushStyleColor(ImGuiCol_TextBG, _activeTags[tagIndex]->GetBgColor());
 				ImGui::PushStyleColor(ImGuiCol_Text, _activeTags[tagIndex]->GetTextColor());
 				ImGui::TextUnformattedWBg(line_start, line_end);
 				ImGui::PopStyleColor(2);
+				ImGui::PopFont();
 			}
 		}
 	}
 
 	if (*_openedFiles[tabId]->IsFollowTailsActive())
+	{
 		ImGui::SetScrollHereY(1.0f);
+	}
 
 	ImGui::PopStyleVar();
 	ImGui::EndChild();
@@ -935,7 +1021,7 @@ void LogWindow::GoToLine(int fileIndex, int height, int lineNumber)
 	_openedFiles[fileIndex]->SetFollowTail(false);
 
 	int lineCount = _openedFiles[fileIndex]->GetLineCount();
-	int lineInWindow = (int)(height / (FONT_SIZE + 1));
+	int lineInWindow = (int)(height / (ImGui::GetFontSize() + _appSettings->LineSpacingY));
 	if (lineNumber < lineInWindow)
 	{
 		_pureLogScrollY = 0.0f;
@@ -1043,6 +1129,17 @@ void LogWindow::ReadSavedData()
 		}
 		_activeTabIndex = _appData["ActiveTab"].as<int>();
 		_openedFiles[_activeTabIndex]->CheckFileStatus(true, &_activeTags);
+
+		_appSettings->FontSize					= _appData["App_font_size"].as<int>();
+		_appSettings->LineSpacingX				= _appData["App_line_spacing_x"].as<float>();
+		_appSettings->LineSpacingY				= _appData["App_line_spacing_y"].as<float>();
+		_appSettings->ShowLineNumbers			= _appData["App_show_lines"].as<bool>();
+		_appSettings->ShowTagIconOnPureLogs		= _appData["App_show_icon_pure"].as<bool>();
+
+		std::strcpy(_appSettings->SearchBgColor, _appData["App_src_bg_color"].as<std::string>().c_str());
+		std::strcpy(_appSettings->SearchTextColor, _appData["App_src_txt_color"].as<std::string>().c_str());
+
+
 		OnTagsRefreshed();
 	}
 	catch (const YAML::ParserException&  e)
@@ -1084,11 +1181,18 @@ void LogWindow::SaveAppData()
 			_appData["TAG_bg_color"].push_back(_activeTags[i]->GetBgColorHex());
 			_appData["TAG_text_color"].push_back(_activeTags[i]->GetTextColorHex());
 			_appData["TAG_is_active"].push_back(_activeTags[i]->IsActive());
-				
 		}
 	}
 
-	_appData["ActiveTab"]=_activeTabIndex;
+	_appData["ActiveTab"]				= _activeTabIndex;
+	_appData["App_font_size"]			= _appSettings->FontSize;
+	_appData["App_show_lines"]			= _appSettings->ShowLineNumbers;
+	_appData["App_src_bg_color"]		= _appSettings->SearchBgColor;
+	_appData["App_src_txt_color"]		= _appSettings->SearchTextColor;
+	_appData["App_show_icon_pure"]		= _appSettings->ShowTagIconOnPureLogs;
+	_appData["App_line_spacing_x"]		= _appSettings->LineSpacingX;
+	_appData["App_line_spacing_y"]		= _appSettings->LineSpacingY;
+	
 	boost::filesystem::ofstream fout(_appDataPath);
 	fout << _appData;
 }

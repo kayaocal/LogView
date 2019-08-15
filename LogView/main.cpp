@@ -79,11 +79,13 @@ int main(int, char**)
     bool show_demo_window = true;
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-	LogWindow* logWnd = new LogWindow();
-	io.Fonts->AddFontFromFileTTF("Roboto-Medium.ttf", 15);
-
-
+	AppSettings * app = new AppSettings();
+	
+	LogWindow* logWnd = new LogWindow(app);
+	logWnd->FontRegular[0]	= io.Fonts->AddFontFromFileTTF("Ubuntu-Regular.ttf", 15);
+	logWnd->FontRegular[1]	= io.Fonts->AddFontFromFileTTF("Ubuntu-Regular.ttf", 18);
+	logWnd->FontMedium[0]	= io.Fonts->AddFontFromFileTTF("Ubuntu-Medium.ttf", 15);
+	logWnd->FontMedium[1]	= io.Fonts->AddFontFromFileTTF("Ubuntu-Medium.ttf", 18);
     // Main loop
     MSG msg;
     ZeroMemory(&msg, sizeof(msg));
@@ -112,6 +114,7 @@ int main(int, char**)
 
 		bool isSuccess = ::GetWindowRect(hwnd, &windowRect);
 		
+			   
 		if (isSuccess)
 		{
 			float WindowWidth = std::abs(windowRect.right - windowRect.left);
@@ -124,6 +127,7 @@ int main(int, char**)
 		}
 
         // Rendering
+
         ImGui::EndFrame();
         g_pd3dDevice->SetRenderState(D3DRS_ZENABLE, false);
         g_pd3dDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
@@ -136,11 +140,14 @@ int main(int, char**)
             ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
             g_pd3dDevice->EndScene();
         }
+
+	
         HRESULT result = g_pd3dDevice->Present(NULL, NULL, NULL, NULL);
 
         // Handle loss of D3D9 device
         if (result == D3DERR_DEVICELOST && g_pd3dDevice->TestCooperativeLevel() == D3DERR_DEVICENOTRESET)
             ResetDevice();
+
     }
 
 	logWnd->SaveAppData();

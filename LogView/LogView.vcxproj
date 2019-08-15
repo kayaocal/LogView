@@ -31,6 +31,7 @@
     <ClCompile Include="src\TagItem.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\AppSettings.h" />
     <ClInclude Include="include\General.h" />
     <ClInclude Include="include\imgui\imconfig.h" />
     <ClInclude Include="include\imgui\imgui.h" />

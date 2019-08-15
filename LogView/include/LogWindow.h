@@ -7,6 +7,7 @@
 #include "General.h"
 #include "LogFile.h"
 #include "TagItem.h"
+#include "AppSettings.h"
 #include <yaml-cpp/yaml.h>
 
 class LogWindow
@@ -16,6 +17,8 @@ private :
 	ImGuiWindowFlags window_flags;
 	OPENFILENAMEW _openFileName;
 	
+	AppSettings* _appSettings;
+
 	bool selectionStarted = false;
 	bool p_open;
 	bool _shouldGoToLine;
@@ -31,7 +34,6 @@ private :
 	char bufTagName[MAX_TAG_LENGTH];
 	float _tagColorBufferBg[4];
 	float _tagColorBufferText[4];
-	
 	std::vector<LogView::LogFile*> _openedFiles;
 	std::vector<TagItem*> _activeTags;
 
@@ -46,11 +48,11 @@ private :
 	void DrawTabs();
 	void AddToolTip(const char* chr);
 	void DrawTagWorks(float width);
-	void DrawPureLogs(float width, int tabId);
+	void DrawPureLogs(float width, float height, int tabId);
 	void CalculateClipboardDataByLine(int tabId, int line);
 	void CalculateClipboardDataBySelectedLines(int tabId);
 	void CopyClipboardDataToClipboard();
-	void DrawTaggedLogs(float width, int tabId);
+	void DrawTaggedLogs(float width, float height, int tabId);
 	void EditTag(bool isNew);
 	void OnTagsRefreshed();
 	void GoToLine(int file_index,int height, int lineNumber);
@@ -68,13 +70,19 @@ private :
 	void CheckForIllegalSelectedLine();
 
 public:
-	LogWindow();
+	ImFont* _currentFont;
+	LogWindow(AppSettings* app);
 	~LogWindow();
 	char tempString[256];
+	char tempStr[32];
+	char tempStrM[64];
+	char tempStrX[128];
+	char tempStrXL[256];
 
 	void OpenFile();
 
-	
+	ImFont* FontRegular[2];
+	ImFont* FontMedium[2];
 
 	void SaveAppData();
 

@@ -73,3 +73,16 @@ static void SetColorArray(float* arr, float red, float green, float blue, float 
 	arr[2] = blue;
 	arr[3] = alpha;
 }
+
+static void GetNumber(char* str, int strSize, int number)
+{
+	int counter = 0;
+	do
+	{
+		int step = number % 10;
+		number /= 10;
+		str[strSize - counter - 1] = step + 48;
+		counter++;
+	} while (counter < strSize);
+
+}

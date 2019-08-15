@@ -197,6 +197,9 @@
     <ClInclude Include="include\yaml-cpp\yaml.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\AppSettings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\imgui_impl_metal.mm" />

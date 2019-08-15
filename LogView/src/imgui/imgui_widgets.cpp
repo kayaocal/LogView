@@ -779,8 +779,8 @@ bool ImGui::ArrowTextButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImG
 	const ImU32 text_col = GetColorU32(ImGuiCol_Text);
 	RenderNavHighlight(bb, id);
 	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
-	RenderArrow(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), text_col, dir);
-	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
+	RenderArrow(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f), ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f)), text_col, dir);
+	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f), ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
 
 	return pressed;
 }
@@ -843,8 +843,8 @@ bool ImGui::MagGlassTextButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFla
 	const ImU32 text_col = GetColorU32(ImGuiCol_Text);
 	RenderNavHighlight(bb, id);
 	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
-	RenderMagGlass(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), text_col);
-	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
+	RenderMagGlass(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f), ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f)), text_col);
+	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f), ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
 
 	return pressed;
 }
@@ -908,8 +908,8 @@ bool ImGui::CopyTextButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags f
 	RenderNavHighlight(bb, id);
 	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
 	ImU32 bgCopy = ColorConvertFloat4ToU32(ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
-	RenderCopyIcon(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), text_col, bgCopy);
-	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
+	RenderCopyIcon(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f), ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f)), text_col, bgCopy);
+	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f), ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
 
 	return pressed;
 }
@@ -973,8 +973,8 @@ bool ImGui::TagTextButtonEx(const char* str_id, ImVec2 size, ImGuiButtonFlags fl
 	const ImU32 text_col = GetColorU32(ImGuiCol_Text);
 	RenderNavHighlight(bb, id);
 	RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
-	RenderTagIcon(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), text_col, bg_col);
-	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (15 - g.FontSize) * 0.5f), ImMax(0.0f, (15 - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
+	RenderTagIcon(window->DrawList, bb.Min + ImVec2(ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f), ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f)), text_col, bg_col);
+	RenderTextClipped(bb.Min + ImVec2(ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f), ImMax(0.0f, (GetFontSize() - g.FontSize) * 0.5f)), bb.Max - style.FramePadding, str_id, NULL, &str_size, style.ButtonTextAlign, &bb);
 
 	return pressed;
 }
@@ -1041,18 +1041,18 @@ bool ImGui::CopyTextButton(const char* str_id, ImVec2 size)
 
 bool ImGui::MagGlassButton(const char* str_id)
 {
-	return MagGlassButtonEx(str_id, ImVec2(15, 15),0);
+	return MagGlassButtonEx(str_id, ImVec2(GetFontSize(), GetFontSize()),0);
 }
 
 bool ImGui::CopyButton(const char* str_id)
 {
-	return CopyButtonEx(str_id, ImVec2(15, 15), 0);
+	return CopyButtonEx(str_id, ImVec2(GetFontSize(), GetFontSize()), 0);
 	
 }
 
 bool ImGui::TagButton(const char* str_id)
 {
-	return TagButtonEx(str_id, ImVec2(15, 15), 0);
+	return TagButtonEx(str_id, ImVec2(GetFontSize(), GetFontSize()), 0);
 }
 
 
