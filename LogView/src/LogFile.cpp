@@ -113,9 +113,8 @@ void LogView::LogFile::ReadFile(std::vector<TagItem*>* tags, TagItem* searchTag)
 		int tag_index = 0;
 		int tag_id = 0;
 		int search_tag_id = 0;
-		//line = std::to_string(_lineCount) + " - " + line;
+		line = std::to_string(_lineCount+1) + " - " + line + "\n";
 		_buf.append(line.c_str());
-
 		if (searchTag)
 		{
 			if (strlen(searchTag->GetTag()) > 3)
@@ -224,11 +223,7 @@ LogView::LogFile::LogFile(wchar_t * file_name, wchar_t * file_title)
 	std::cout << "LogFile Converted fileTitle = "<< _fileTitle <<std::endl;
 	
 	std::cout << "File Size : " << file_size(file_name) << std::endl;
-
-
 }
-
-
 
 LogView::LogFile::~LogFile()
 {

@@ -59,8 +59,9 @@ LogWindow::~LogWindow()
 
 void LogWindow::Render(float width, float height)
 {
-	float pureLogWindowHeight = height * 0.45f;
-	float taggedLogWindowHeight = height * 0.3f;
+	pureLogWindowHeight = (height * 0.4f);
+	
+	taggedLogWindowHeight = height * 0.3f;
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_FirstUseEver);
 
@@ -269,7 +270,7 @@ void LogWindow::Render(float width, float height)
 							std::cout << "Left button clicked" << std::endl;
 							int lineNumber = GetPrevTagLineNumber(n, item_current);
 							GoToLine(n, pureLogWindowHeight, lineNumber);
-							
+
 						}
 					}
 
@@ -284,7 +285,6 @@ void LogWindow::Render(float width, float height)
 							std::cout << "Right button clicked" << std::endl;
 							int lineNumber = GetNextTagLineNumber(n, item_current);
 							GoToLine(n, pureLogWindowHeight, lineNumber);
-							_shouldGoToLine = true;
 						}
 					}
 
@@ -301,7 +301,7 @@ void LogWindow::Render(float width, float height)
 					ImGui::Text(filesize);
 					
 					ImGui::Separator();
-					DrawPureLogs(width, height, n);
+					DrawPureLogs(width, pureLogWindowHeight, n);
 					ImGui::Separator();
 					DrawTagWorks(width);
 					ImGui::Separator();
@@ -365,12 +365,10 @@ void LogWindow::AddToolTip(const char * chr)
 void LogWindow::DrawPureLogs(float width, float height, int tabId)
 {
 	int leftMargin = 25;
-	float taggedLogWindowHeight = height * 0.3f;
-	float pureLogWindowHeight = height * 0.4f;
-	if (_appSettings->ShowLineNumbers)
+	
+	if (0&&_appSettings->ShowLineNumbers)
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(_appSettings->LineSpacingX, _appSettings->LineSpacingY)); // Tighten spacing
-		ImGui::BeginChild("lineswindow", ImVec2(40, pureLogWindowHeight -12), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize
+		ImGui::BeginChild("lineswindow", ImVec2(40, height -12), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize
 			| ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove );
 		
 		for (int i = 0; i < _openedFiles[tabId]->GetLineCount() ; i++)
@@ -378,14 +376,13 @@ void LogWindow::DrawPureLogs(float width, float height, int tabId)
 			GetNumber(tempStr, 4, i+1);
 			ImGui::TextUnformatted(tempStr, tempStr+4);
 		}
-		ImGui::SetScrollY(_pureLogScrollY * (ImGui::GetFontSize() + _appSettings->LineSpacingY) * _openedFiles[tabId]->GetLineCount());
+		ImGui::SetScrollY(_pureLogScrollY * (ImGui::GetFontSize() ) * _openedFiles[tabId]->GetLineCount());
 		ImGui::EndChild();
 		ImGui::SameLine();
 		leftMargin += 40;
-		ImGui::PopStyleVar();
 	}
 
-	ImGui::BeginChild("scrolling", ImVec2(width - leftMargin, pureLogWindowHeight), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+	ImGui::BeginChild("scrolling", ImVec2(width - leftMargin, height), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
 	
 	
@@ -417,6 +414,21 @@ void LogWindow::DrawPureLogs(float width, float height, int tabId)
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(_appSettings->LineSpacingX, _appSettings->LineSpacingY)); // Tighten spacing
 
+
+	float scrollStartPos = ImGui::GetScrollY();
+	float line = scrollStartPos / (ImGui::GetFontSize());
+	float scrollRatio = ImGui::GetScrollY() / ImGui::GetScrollMaxY();
+	float layn = scrollRatio * lineCount;
+
+	int lineCountInWindow = height / ImGui::GetFontSize();
+
+	for (int i = 0; i < lineCountInWindow; i++)
+	{
+
+	}
+
+	ImGui::TextUnformatted(buf_start, buf_end);
+	/*
 	for (int i = 0; i < lineCount; i++)
 	{
 		const char* line_start = buf_start + _openedFiles[tabId]->LineOffsets[i];
@@ -511,14 +523,14 @@ void LogWindow::DrawPureLogs(float width, float height, int tabId)
 		}
 
 	}
-
+	*/
 	if (*_openedFiles[tabId]->IsFollowTailsActive())
 	{
 		ImGui::SetScrollHereY(1.0f);
 	}
 	else if(_shouldGoToLine == true)
 	{
-		ImGui::SetScrollY(_pureLogScrollY * (ImGui::GetFontSize() + _appSettings->LineSpacingY) * _openedFiles[tabId]->GetLineCount());
+		ImGui::SetScrollY(_pureLogScrollY * (ImGui::GetFontSize()) * _openedFiles[tabId]->GetLineCount());
 		_shouldGoToLine = false;
 	}
 	
@@ -640,8 +652,6 @@ void LogWindow::DrawPureLogs(float width, float height, int tabId)
 
 void LogWindow::DrawTaggedLogs(float width, float height, int tabId)
 {
-	float taggedLogWindowHeight = height * 0.3f;
-	float pureLogWindowHeight = height * 0.4f;
 
 	ImGui::BeginChild("scrolling32", ImVec2(width - 25, taggedLogWindowHeight), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
@@ -1021,7 +1031,7 @@ void LogWindow::GoToLine(int fileIndex, int height, int lineNumber)
 	_openedFiles[fileIndex]->SetFollowTail(false);
 
 	int lineCount = _openedFiles[fileIndex]->GetLineCount();
-	int lineInWindow = (int)(height / (ImGui::GetFontSize() + _appSettings->LineSpacingY));
+	int lineInWindow = (int)(height / (ImGui::GetFontSize()));
 	if (lineNumber < lineInWindow)
 	{
 		_pureLogScrollY = 0.0f;
@@ -1034,7 +1044,9 @@ void LogWindow::GoToLine(int fileIndex, int height, int lineNumber)
 	{
 		_pureLogScrollY = (float)lineNumber / (float)(lineCount);
 	}
+		_pureLogScrollY = (float)lineNumber / (float)(lineCount);
 
+	
 	_currentLine = lineNumber;
 }
 

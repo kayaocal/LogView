@@ -70,6 +70,8 @@ private :
 	void CheckForIllegalSelectedLine();
 
 public:
+	float pureLogWindowHeight;
+	float taggedLogWindowHeight;
 	ImFont* _currentFont;
 	LogWindow(AppSettings* app);
 	~LogWindow();
