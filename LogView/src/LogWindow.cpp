@@ -135,7 +135,7 @@ void LogWindow::Render(float width, float height)
 		{
 			tab_bar_flags |= ImGuiTabBarFlags_TabListPopupButton;
 		}
-
+		/*
 		// Passing a bool* to BeginTabItem() is similar to passing one to Begin(): the underlying bool will be set to false when the tab is closed.
 		if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
 		{
@@ -311,7 +311,7 @@ void LogWindow::Render(float width, float height)
 			}
 			ImGui::EndTabBar();
 		}
-
+		*/
 		ImGui::SameLine();
 		ImGui::Spacing();
 	}
@@ -414,17 +414,33 @@ void LogWindow::DrawPureLogs(float width, float height, int tabId)
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(_appSettings->LineSpacingX, _appSettings->LineSpacingY)); // Tighten spacing
 
-
-	float scrollStartPos = ImGui::GetScrollY();
-	float line = scrollStartPos / (ImGui::GetFontSize());
-	float scrollRatio = ImGui::GetScrollY() / ImGui::GetScrollMaxY();
-	float layn = scrollRatio * lineCount;
-
 	int lineCountInWindow = height / ImGui::GetFontSize();
+	float drawedFirstLine = (int)((ImGui::GetScrollY() / (ImGui::GetFontSize())));
 
-	for (int i = 0; i < lineCountInWindow; i++)
+	int kalan = (int)ImGui::GetScrollY() % (int)(ImGui::GetFontSize());
+	float drawedFirstLinePos = GetLinePos(tabId, drawedFirstLine);
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+
+	for (int i = 0; i < 0; i++)
 	{
-
+		if (_openedFiles[tabId]->LineSearchTag[i + drawedFirstLine])
+		{
+			ImVec2 text_pos(0, window->Pos.y + GetLinePos(tabId, i) - kalan);
+			ImRect bb(text_pos, ImVec2(2048, text_pos.y + ImGui::GetFontSize()));
+			ImU32 xcol = ImGui::ColorConvertFloat4ToU32(_searchTag->GetBgColor());
+			ImGui::RenderFrame(bb.Min, bb.Max, xcol, true, 0);
+		}
+		else if (_openedFiles[tabId]->LineTags[i + drawedFirstLine] > 0)
+		{
+			int tagIndex = GetTagIndex(_openedFiles[tabId]->LineTags[i + drawedFirstLine]);
+			if (tagIndex >= 0 && _activeTags[tagIndex]->IsActive())
+			{
+				ImVec2 text_pos(0, window->Pos.y + GetLinePos(tabId, i) - kalan);
+				ImRect bb(text_pos, ImVec2(2048, text_pos.y +ImGui::GetFontSize()));
+				ImU32 xcol = ImGui::ColorConvertFloat4ToU32(_activeTags[tagIndex]->GetBgColor());
+				ImGui::RenderFrame(bb.Min, bb.Max, xcol, true, 0);
+			}
+		}
 	}
 
 	ImGui::TextUnformatted(buf_start, buf_end);
@@ -652,7 +668,7 @@ void LogWindow::DrawPureLogs(float width, float height, int tabId)
 
 void LogWindow::DrawTaggedLogs(float width, float height, int tabId)
 {
-
+	return;
 	ImGui::BeginChild("scrolling32", ImVec2(width - 25, taggedLogWindowHeight), false, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
 
@@ -1025,6 +1041,11 @@ void LogWindow::OnTagsRefreshed()
 	}
 }
 
+float LogWindow::GetLinePos(int fileIndex, float lineNumber)
+{
+	return (float)lineNumber * (ImGui::GetFontSize());
+}
+
 void LogWindow::GoToLine(int fileIndex, int height, int lineNumber)
 {
 	_shouldGoToLine = true;
@@ -1044,7 +1065,6 @@ void LogWindow::GoToLine(int fileIndex, int height, int lineNumber)
 	{
 		_pureLogScrollY = (float)lineNumber / (float)(lineCount);
 	}
-		_pureLogScrollY = (float)lineNumber / (float)(lineCount);
 
 	
 	_currentLine = lineNumber;

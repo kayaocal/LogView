@@ -55,6 +55,7 @@ private :
 	void DrawTaggedLogs(float width, float height, int tabId);
 	void EditTag(bool isNew);
 	void OnTagsRefreshed();
+	float GetLinePos(int fileIndex, float lineNumber);
 	void GoToLine(int file_index,int height, int lineNumber);
 	
 	void ReadSavedData();
